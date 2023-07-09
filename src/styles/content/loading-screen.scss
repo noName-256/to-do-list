@@ -1,0 +1,70 @@
+@use "../abstracts" as *;
+
+#loading-screen {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  padding-top: 15vh;
+
+  padding-bottom: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+
+  animation: fade-out 0.5s ease 4s forwards;
+  background-color: var(--main-bgc);
+  z-index: 10000;
+  .logo-container {
+    height: var(--logo-size);
+    width: var(--logo-size);
+    .loading-logo {
+      height: var(--logo-size);
+      background-image: url(../../assets/images/check.svg);
+      background-size: var(--logo-size);
+      width: 0px;
+      animation: load-logo 0.5s forwards ease 0.5s;
+    }
+  }
+  .text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  h1 {
+    margin-bottom: 0;
+    margin-top: 10px;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+
+    opacity: 0;
+    animation: fade-in 0.5s forwards ease 1.5s;
+  }
+  p {
+    margin: 0;
+    font-size: min(1.4rem, 6vw);
+    letter-spacing: 0.5px;
+
+    opacity: 0;
+    animation: fade-in 0.5s forwards ease 2.5s;
+  }
+}
+
+@media (max-height: 800px) {
+  #loading-screen {
+    padding-top: 7vh;
+    gap: 60px;
+    .text {
+      gap: 20px;
+    }
+  }
+}
+@media (min-width: 800px) {
+  #loading-screen {
+    gap: 80px;
+    .text {
+      gap: 30px;
+    }
+  }
+}

@@ -1,0 +1,266 @@
+@use "../abstracts" as *;
+main#content {
+  box-sizing: border-box;
+  width: calc(100vw - var(--menu-size));
+  height: calc(100vh - var(--header-size));
+  padding-top: 50px;
+  padding-left: 10vw;
+  padding-right: 10vw;
+  margin-left: var(--menu-size);
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  transition: all var(--menu-snap-time);
+  overflow-y: scroll;
+  z-index: 200;
+  .content-title {
+    font-size: 2rem;
+    font-weight: bold;
+    font-family: MasivaMedium, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+      "Helvetica Neue", sans-serif;
+  }
+}
+
+#menu.hidden + main#content {
+  padding-left: 20vw;
+  padding-right: 20vw;
+}
+
+.tasks {
+  width: 100%;
+  height: 100%;
+  .task-card {
+    /* #region  priority based checkmark coloring */
+    &.p1 {
+      --checkbox-color: #a93d44;
+      --checkbox-bgc: #d8bdc2;
+      --checkbox-light-bgc: #e1d5d8;
+      --check-color-filter: invert(25%) sepia(67%) saturate(1617%)
+        hue-rotate(327deg) brightness(91%) contrast(81%);
+    }
+    &.p2 {
+      --checkbox-color: #fb8909;
+      --checkbox-bgc: #e9ddcd;
+      --checkbox-light-bgc: #eae4dd;
+      --check-color-filter: invert(71%) sepia(47%) saturate(7495%)
+        hue-rotate(10deg) brightness(106%) contrast(93%);
+    }
+    &.p3 {
+      --checkbox-color: #246fe0;
+      --checkbox-bgc: #c1d2ec;
+      --checkbox-light-bgc: #d2ddee;
+      --check-color-filter: invert(41%) sepia(56%) saturate(1480%)
+        hue-rotate(194deg) brightness(85%) contrast(108%);
+    }
+    &.pn {
+      --checkbox-color: #9ba1a7;
+      --checkbox-bgc: #d8dbdf;
+      --checkbox-light-bgc: #e1e5e8;
+      --check-color-filter: invert(65%) sepia(12%) saturate(166%)
+        hue-rotate(169deg) brightness(96%) contrast(90%);
+    }
+    /* #endregion */
+    position: relative;
+    width: 100%;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgb(213, 213, 213);
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    transition: all 0.1s ease-out;
+    .icon {
+      display: none;
+      height: 30px;
+      padding: 2.5px;
+      border-radius: 5px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: rgba($color: #000000, $alpha: 0.075);
+        filter: brightness(0) saturate(100%) invert(20%) sepia(5%)
+          saturate(1101%) hue-rotate(169deg) brightness(101%) contrast(94%);
+      }
+    }
+    &:hover .icon {
+      display: block;
+    }
+    .icons {
+      position: absolute;
+      display: flex;
+      flex-direction: row;
+      gap: 0;
+      right: 0;
+      top: 20px;
+    }
+    .checkbox {
+      position: relative;
+      flex-shrink: 0;
+      display: block;
+      box-sizing: border-box;
+      width: 25px;
+      height: 25px;
+      margin-top: 5px;
+      border-radius: 1000px;
+      border: 2px solid var(--checkbox-color);
+      background-color: var(--checkbox-light-bgc);
+      cursor: pointer;
+      transition: all 0.1s ease-out;
+      input {
+        appearance: none;
+        -webkit-appearance: none;
+        height: 0;
+        width: 0;
+      }
+      .check {
+        position: absolute;
+        width: 80%;
+        height: 80%;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        filter: var(--check-color-filter);
+        opacity: 0;
+        transition: opacity 0.1s ease-out;
+      }
+      &:hover {
+        background-color: var(--checkbox-bgc);
+        .check {
+          opacity: 1;
+        }
+      }
+    }
+    .data {
+      max-width: calc(100% - 120px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      .title {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.6rem;
+        font-size: 1.6rem;
+        letter-spacing: 0.5px;
+        font-weight: bold;
+        .project-title {
+          font-style: italic;
+          color: #818182;
+        }
+      }
+      .description {
+        flex: 0 0 auto;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        font-size: 1.2rem;
+        line-height: 1.9rem;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #636262;
+      }
+      .due-date {
+        margin-top: 5px;
+        font-size: 1.3rem;
+        letter-spacing: 2px;
+      }
+    }
+  }
+  .add-task {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+
+    font-size: 1.2rem;
+    color: #636262;
+    cursor: pointer;
+    .add-circle {
+      position: relative;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+    }
+    img.icon {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      height: 80%;
+      width: 80%;
+      filter: brightness(0) saturate(100%) invert(25%) sepia(67%)
+        saturate(1617%) hue-rotate(327deg) brightness(91%) contrast(81%);
+    }
+    &:hover {
+      color: #cc2530;
+      .add-circle {
+        background-color: #cd3e47;
+      }
+      img.icon {
+        filter: brightness(0) saturate(100%) invert(100%) sepia(100%)
+          saturate(0%) hue-rotate(20deg) brightness(103%) contrast(101%);
+      }
+    }
+  }
+}
+
+#menu.hidden + main#content {
+  margin-left: 0;
+  width: 100vw;
+}
+
+@media (max-width: 800px) {
+  main#content {
+    margin-left: 0;
+    gap: 10px;
+  }
+  #menu:not(.hidden) + main#content {
+    background-color: rgba(black, 0.5);
+    width: 100vw;
+    .tasks .task-card {
+      border-color: #5e5f63;
+      .icon {
+        transition: all 0.3s;
+        filter: brightness(0) saturate(100%) invert(20%) sepia(5%)
+          saturate(1101%) hue-rotate(169deg) brightness(101%) contrast(94%);
+      }
+    }
+  }
+  #menu.hidden + main#content {
+    padding-left: 10vw;
+    padding-right: 2vw;
+  }
+  .tasks .task-card {
+    padding-bottom: 10px;
+    .icons {
+      right: 5px;
+    }
+    .icon {
+      display: block;
+    }
+    .data {
+      gap: 7px;
+      .title {
+        font-size: 1.1rem;
+      }
+      .description {
+        font-size: 0.9rem;
+        line-height: 1.5rem;
+      }
+      .due-date {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 10px;
+        letter-spacing: 1px;
+      }
+    }
+  }
+}

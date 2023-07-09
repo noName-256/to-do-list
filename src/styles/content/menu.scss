@@ -1,0 +1,190 @@
+@use "../abstracts" as *;
+#menu {
+  position: fixed;
+  box-sizing: border-box;
+  width: var(--menu-size);
+  height: calc(100vh - var(--header-size));
+  padding-top: 50px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+
+  background-color: var(--menu-bgc);
+  overflow: hidden;
+  z-index: 500;
+
+  &.hidden {
+    animation: hide-menu-to-left var(--menu-snap-time)
+      cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  &:not(.hidden) {
+    animation: show-menu var(--menu-snap-time) cubic-bezier(0.4, 0, 0.2, 1)
+      forwards;
+  }
+
+  .icon {
+    height: 25px;
+
+    &.plus-icon {
+      filter: invert(100%);
+    }
+  }
+  .tasks-sections,
+  .projects-sections {
+    width: 90%;
+  }
+  .tasks-sections,
+  .projects-sections,
+  .projects-sections .projects {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .task-section,
+  .project-section,
+  .add-project {
+    box-sizing: border-box;
+    width: 100%;
+    height: 50px;
+    border-radius: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    background-color: transparent;
+    border: none;
+    font-family: MasivaRegular, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+      "Helvetica Neue", sans-serif;
+
+    &:hover,
+    &.selected {
+      background-color: rgba($color: black, $alpha: 0.05);
+    }
+    .title {
+      margin-right: auto;
+      max-width: 80%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .number-of-tasks {
+      opacity: 0.4;
+      font-weight: normal;
+      margin-right: 4px;
+    }
+  }
+  .project-section {
+    .delete-icon {
+      display: none;
+    }
+    &:hover {
+      .number-of-tasks {
+        display: none;
+      }
+      .delete-icon {
+        display: block;
+        &:hover {
+          filter: brightness(0) saturate(100%);
+        }
+      }
+    }
+  }
+  .projects-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .add-project.adding {
+    display: none;
+    + .project-form {
+      display: block;
+    }
+  }
+  .project-form {
+    position: relative;
+    display: none;
+    box-sizing: border-box;
+    width: 100%;
+    height: 90px;
+    border-radius: 6px;
+    padding: 10px;
+    padding-top: 10px;
+    margin-top: 10px;
+    background-color: #ded7d9;
+    input {
+      padding: none;
+      border: none;
+      outline: none;
+      background-color: transparent;
+      color: #171717;
+      font-size: 1.3rem;
+      &::placeholder {
+        color: #5a5a5a;
+      }
+    }
+    .submit-buttons {
+      position: absolute;
+      right: 20px;
+      bottom: 10px;
+      display: flex;
+      flex-direction: row;
+      gap: 15px;
+      height: 35px;
+      button {
+        padding-left: 12px;
+        padding-right: 12px;
+        font-size: 1.3rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 7.5px;
+        cursor: pointer;
+      }
+      .cancel {
+        background-color: #cdcdcd;
+        &:hover {
+          background-color: #bababa;
+        }
+        &:active {
+          background-color: #b0aeae;
+        }
+      }
+      .submit {
+        background-color: #ca5b63;
+        color: white;
+        &:hover {
+          background-color: #ae4a51;
+        }
+        &:active {
+          background-color: #a93a42;
+        }
+      }
+    }
+    &:invalid .submit-buttons .submit {
+      background-color: #ca5b62a7;
+      cursor: not-allowed;
+    }
+  }
+}
+
+@media (max-width: 800px) {
+  #menu .project-section {
+    &.selected {
+      .number-of-tasks {
+        display: none;
+      }
+      .delete-icon {
+        display: block;
+      }
+    }
+  }
+}

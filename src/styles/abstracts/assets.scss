@@ -1,0 +1,85 @@
+@font-face {
+  font-family: MasivaRegular;
+  src: url(../../assets/fonts/Masiva-Regular.otf);
+}
+@font-face {
+  font-family: MasivaMedium;
+  src: url(../../assets/fonts/Masiva-Medium.otf);
+}
+@keyframes load-logo {
+  0% {
+    width: 0px;
+  }
+  50% {
+    width: calc(0.405 * var(--logo-size));
+  }
+  54% {
+    width: calc(0.405 * var(--logo-size));
+  }
+  100% {
+    width: var(--logo-size);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes hide-menu-to-left {
+  0% {
+    transform: translate(0);
+    width: var(--menu-size);
+  }
+  99% {
+    transform: translate(-100%, 0);
+    width: var(--menu-size);
+  }
+  100% {
+    width: 0px;
+  }
+}
+@keyframes show-menu {
+  0% {
+    transform: translate(-100%, 0);
+    width: var(--menu-size);
+  }
+  100% {
+    transform: translate(0);
+    width: var(--menu-size);
+  }
+}
+@keyframes show-popup {
+  0% {
+    transform: translate(0, 100px);
+    opacity: 0;
+    width: calc(var(--task-popup-width) * 0.9);
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+    width: var(--task-popup-width);
+  }
+}
+@keyframes hide-popup {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+    width: var(--task-popup-width);
+  }
+  100% {
+    transform: translate(0, 50px);
+    opacity: 0;
+    width: calc(var(--task-popup-width) * 0.9);
+  }
+}

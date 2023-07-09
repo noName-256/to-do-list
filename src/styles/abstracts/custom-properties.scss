@@ -1,0 +1,25 @@
+body {
+  --loading-screen-hide-delay: 0.7s;
+  --logo-size: min(500px, 90vw);
+  --header-color: #a93d44;
+  --header-size: 60px;
+  --main-bgc: #e9ecef;
+  --header-icon-color: #fafbfb;
+  // the color for icons will be edited in the svg directly with fill
+  --menu-bgc: #eae2e5;
+  --menu-size: min(420px, 90vw);
+  --menu-snap-time: 0.2s;
+  --task-popup-width: min(800px, 90vw);
+  --task-popup-snap-time: 0.3s;
+}
+
+@media (max-height: 800px) {
+  body {
+    --logo-size: min(400px, 90vw);
+  }
+}
+@media (min-width: 1200px) {
+  body {
+    --menu-size: min(430px, 90vw);
+  }
+}

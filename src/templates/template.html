@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="../assets/images/check.svg" />
+    <title>Vertex</title>
+  </head>
+  <body>
+    <div id="loading-screen">
+      <div class="logo-container">
+        <div class="loading-logo"></div>
+      </div>
+      <div class="text">
+        <h1>Vertex</h1>
+        <p>The junction of productivity</p>
+      </div>
+    </div>
+    <header>
+      <img
+        src="../assets/images/hamburger.svg"
+        alt="Open menu"
+        title="Menu (M)"
+        class="hamburger icon"
+      />
+      <img
+        src="../assets/images/home.svg"
+        alt="home"
+        title="Home (H)"
+        class="home icon"
+      />
+      <div class="search-bar" title="Search (S)">
+        <img
+          src="../assets/images/search.svg"
+          alt="Search"
+          class="search-icon icon"
+        />
+        <input id="search-field" type="text" placeholder="Search" />
+      </div>
+      <img
+        src="../assets/images/plus.svg"
+        alt="Add task"
+        title="Add task (A+T)"
+        class="add-icon icon add-task-button"
+      />
+    </header>
+    <div id="menu">
+      <div class="tasks-sections">
+        <button class="inbox task-section selected" title="Inbox (I)">
+          <img
+            src="../assets/images/inbox.svg"
+            alt="inbox"
+            class="inbox-icon icon"
+          />
+          <div class="title">Inbox</div>
+          <div class="number-of-tasks"></div>
+        </button>
+        <button class="today task-section" title="Today (D)">
+          <img
+            src="../assets/images/today.svg"
+            alt="today"
+            class="today-icon icon"
+          />
+          <div class="title">Today</div>
+          <div class="number-of-tasks"></div>
+        </button>
+        <button class="this-week task-section" title="This week (W)">
+          <img
+            src="../assets/images/week.svg"
+            alt="week"
+            class="week-icon icon"
+          />
+          <div class="title">This week</div>
+          <div class="number-of-tasks"></div>
+        </button>
+        <button class="done task-section" title="Completed (C)">
+          <img
+            src="../assets/images/done.svg"
+            alt="done"
+            class="done-icon icon"
+          />
+          <div class="title">Completed</div>
+          <div class="number-of-tasks"></div>
+        </button>
+      </div>
+      <div class="projects-sections">
+        <div class="projects-title">Projects</div>
+        <div class="projects">
+          <button class="add-project" title="Add project (A+P)">
+            <img
+              src="../assets/images/plus.svg"
+              alt="plus"
+              class="icon plus-icon"
+            />
+            <div class="title">Add project</div>
+          </button>
+          <form class="project-form" onsubmit="return false">
+            <input
+              name="title"
+              class="title"
+              type="text"
+              placeholder="Project"
+              required
+            />
+            <div class="submit-buttons">
+              <button type="button" class="cancel">Cancel</button>
+              <button type="button" class="submit">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <main id="content">
+      <div class="content-title">Inbox</div>
+      <div class="tasks">
+        <div class="add-task add-task-button" title="Add task (A+T)">
+          <div class="add-circle">
+            <img
+              src="../assets/images/plus.svg"
+              alt="add"
+              class="icon plus-icon"
+            />
+          </div>
+          <div class="text">Add task</div>
+        </div>
+      </div>
+    </main>
+    <div class="task-popup-container">
+      <form class="task-popup" onsubmit="return false">
+        <div class="data">
+          <input
+            name="title"
+            type="text"
+            class="title"
+            placeholder="Task name"
+            required
+          />
+          <textarea
+            name="description"
+            class="description auto-resize"
+            rows="1"
+            placeholder="Description"
+          ></textarea>
+          <div class="extra-fields">
+            <input name="date" type="date" class="date-picker" />
+            <div class="priority-select">
+              <button type="button" class="priority-button">
+                <img
+                  src="../assets/images/flag-outline.svg"
+                  alt="flag"
+                  class="icon flag-icon"
+                />
+                <div class="text">Priority</div>
+              </button>
+              <div class="priority-dropdown">
+                <button
+                  type="button"
+                  class="priority-1 dropdown-option"
+                  title="(1)"
+                >
+                  <img
+                    src="../assets/images/flag.svg"
+                    alt="red flag"
+                    class="icon dropdown-flag-icon p1"
+                  />
+                  <div class="dropdown-text">Priority 1</div>
+                </button>
+                <button
+                  type="button"
+                  class="priority-2 dropdown-option"
+                  title="(2)"
+                >
+                  <img
+                    src="../assets/images/flag.svg"
+                    alt="yellow flag"
+                    class="icon dropdown-flag-icon p2"
+                  />
+                  <div class="dropdown-text">Priority 2</div>
+                </button>
+                <button
+                  type="button"
+                  class="priority-3 dropdown-option"
+                  title="(3)"
+                >
+                  <img
+                    src="../assets/images/flag.svg"
+                    alt="blue flag"
+                    class="icon dropdown-flag-icon p3"
+                  />
+                  <div class="dropdown-text">Priority 3</div>
+                </button>
+                <button
+                  type="button"
+                  class="priority-none dropdown-option"
+                  title="(N)"
+                >
+                  <img
+                    src="../assets/images/flag-outline.svg"
+                    alt="flag"
+                    class="icon dropdown-flag-icon"
+                  />
+                  <div class="dropdown-text">None</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-ribbon">
+          <div class="project-select">
+            <button type="button" class="project-button">
+              <img src="../assets/images/inbox.svg" alt="inbox" class="icon" />
+              <div class="text">Inbox</div>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M7,10L12,15L17,10H7Z" />
+              </svg>
+            </button>
+            <div class="project-dropdown">
+              <button type="button" class="dropdown-option">
+                <img src="../assets/images/inbox.svg" alt="inbox" />
+                <div class="text">Inbox</div>
+              </button>
+            </div>
+          </div>
+          <div class="submition-buttons">
+            <button type="button" class="cancel" title="Cancel(ESC)">
+              Cancel
+            </button>
+            <button type="button" class="submit" title="Add task(CTRL+ENTER)">
+              Add task
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
