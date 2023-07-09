@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="check.svg" />
+    <title>Vertex</title>
+  <script defer src="main.961d29697e1757e0b076.js"></script></head>
+  <body>
+    <div id="loading-screen">
+      <div class="logo-container">
+        <div class="loading-logo"></div>
+      </div>
+      <div class="text">
+        <h1>Vertex</h1>
+        <p>The junction of productivity</p>
+      </div>
+    </div>
+    <header>
+      <img
+        src="hamburger.svg"
+        alt="Open menu"
+        title="Open menu"
+        class="hamburger icon"
+      />
+      <img
+        src="home.svg"
+        alt="home"
+        title="Home"
+        class="home icon"
+      />
+      <div class="search-bar" title="Search">
+        <img
+          src="search.svg"
+          alt="Search"
+          class="search-icon icon"
+        />
+        <input id="search-field" type="text" placeholder="Search" />
+      </div>
+      <img
+        src="plus.svg"
+        alt="Add task"
+        title="Add task"
+        class="add-icon icon add-task-button"
+      />
+    </header>
+    <div id="menu">
+      <div class="tasks-sections">
+        <div class="inbox task-section selected" title="Inbox">
+          <img
+            src="inbox.svg"
+            alt="inbox"
+            class="inbox-icon icon"
+          />
+          <div class="title">Inbox</div>
+          <div class="number-of-tasks"></div>
+        </div>
+        <div class="today task-section" title="Today">
+          <img
+            src="today.svg"
+            alt="today"
+            class="today-icon icon"
+          />
+          <div class="title">Today</div>
+          <div class="number-of-tasks"></div>
+        </div>
+        <div class="this-week task-section" title="This week">
+          <img
+            src="week.svg"
+            alt="week"
+            class="week-icon icon"
+          />
+          <div class="title">This week</div>
+          <div class="number-of-tasks"></div>
+        </div>
+        <div class="done task-section" title="Completed">
+          <img
+            src="done.svg"
+            alt="done"
+            class="done-icon icon"
+          />
+          <div class="title">Completed</div>
+          <div class="number-of-tasks"></div>
+        </div>
+      </div>
+      <div class="projects-sections">
+        <div class="projects-title">Projects</div>
+        <div class="projects">
+          <div class="add-project" title="Add project">
+            <img
+              src="plus.svg"
+              alt="plus"
+              class="icon plus-icon"
+            />
+            <div class="title">Add project</div>
+          </div>
+          <form class="project-form" onsubmit="return false">
+            <input
+              name="title"
+              class="title"
+              type="text"
+              placeholder="Project"
+              required
+            />
+            <div class="submit-buttons">
+              <button type="button" class="cancel">Cancel</button>
+              <button type="button" class="submit">Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <main id="content">
+      <div class="content-title">Inbox</div>
+      <div class="tasks">
+        <div class="add-task add-task-button">
+          <div class="add-circle">
+            <img
+              src="plus.svg"
+              alt="add"
+              class="icon plus-icon"
+            />
+          </div>
+          <div class="text">Add task</div>
+        </div>
+      </div>
+    </main>
+    <div class="task-popup-container">
+      <form class="task-popup" onsubmit="return false">
+        <div class="data">
+          <input
+            name="title"
+            type="text"
+            class="title"
+            placeholder="Task name"
+            required
+          />
+          <textarea
+            name="description"
+            class="description auto-resize"
+            rows="1"
+            placeholder="Description"
+          ></textarea>
+          <div class="extra-fields">
+            <input name="date" type="date" class="date-picker" />
+            <div class="priority-select">
+              <div class="priority-button">
+                <img
+                  src="flag-outline.svg"
+                  alt="flag"
+                  class="icon flag-icon"
+                />
+                <div class="text">Priority</div>
+              </div>
+              <div class="priority-dropdown">
+                <div class="priority-1 dropdown-option">
+                  <img
+                    src="flag.svg"
+                    alt="red flag"
+                    class="icon dropdown-flag-icon p1"
+                  />
+                  <div class="dropdown-text">Priority 1</div>
+                </div>
+                <div class="priority-2 dropdown-option">
+                  <img
+                    src="flag.svg"
+                    alt="yellow flag"
+                    class="icon dropdown-flag-icon p2"
+                  />
+                  <div class="dropdown-text">Priority 2</div>
+                </div>
+                <div class="priority-3 dropdown-option">
+                  <img
+                    src="flag.svg"
+                    alt="blue flag"
+                    class="icon dropdown-flag-icon p3"
+                  />
+                  <div class="dropdown-text">Priority 3</div>
+                </div>
+                <div class="priority-none dropdown-option">
+                  <img
+                    src="flag-outline.svg"
+                    alt="flag"
+                    class="icon dropdown-flag-icon"
+                  />
+                  <div class="dropdown-text">None</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-ribbon">
+          <div class="project-select">
+            <button type="button" class="project-button">
+              <img src="inbox.svg" alt="inbox" class="icon" />
+              <div class="text">Inbox</div>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M7,10L12,15L17,10H7Z" />
+              </svg>
+            </button>
+            <div class="project-dropdown">
+              <div class="dropdown-option">
+                <img src="inbox.svg" alt="inbox" />
+                <div class="text">Inbox</div>
+              </div>
+            </div>
+          </div>
+          <div class="submition-buttons">
+            <button type="button" class="cancel">Cancel</button>
+            <button type="button" class="submit">Add task</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>
