@@ -12,17 +12,17 @@ Storage.prototype.getObject = function (key) {
   return JSON.parse(this.getItem(key));
 };
 function storeData() {
-  localStorage.setObject("tasks", getTaskList());
-  localStorage.setObject("projects", getProjectList());
-  localStorage.setItem("visitedSiteBefore", true);
+  sessionStorage.setObject("tasks", getTaskList());
+  sessionStorage.setObject("projects", getProjectList());
+  sessionStorage.setItem("visitedSiteBefore", true);
 }
 function restoreData() {
-  let visitedSiteBefore = localStorage.getItem("visitedSiteBefore");
+  let visitedSiteBefore = sessionStorage.getItem("visitedSiteBefore");
   if (!visitedSiteBefore) {
     setDefaultFirstImpressionTasksAndProjects();
   } else {
-    setTaskListFromJSON(localStorage.getObject("tasks"));
-    setProjectListFromJSON(localStorage.getObject("projects"));
+    setTaskListFromJSON(sessionStorage.getObject("tasks"));
+    setProjectListFromJSON(sessionStorage.getObject("projects"));
   }
 }
 window.addEventListener("beforeunload", storeData);
