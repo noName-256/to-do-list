@@ -389,6 +389,9 @@ function hideLoadingScreen() {
   let bodyStyles = window.getComputedStyle(document.body);
   let hideDelay = bodyStyles.getPropertyValue("--loading-screen-hide-delay");
   let numberOfSeconds = +hideDelay.replace(/[^0-9\.]+/g, "");
+  window.addEventListener("click", () => {
+    loadingElement.style.display = "none";
+  });
   setTimeout(() => {
     loadingElement.style.display = "none";
   }, numberOfSeconds * 1000);
