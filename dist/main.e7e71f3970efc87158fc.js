@@ -1640,16 +1640,42 @@ function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" =
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   cancelTask: () => (/* binding */ cancelTask),
+/* harmony export */   closeAddProject: () => (/* binding */ closeAddProject),
 /* harmony export */   completeTask: () => (/* binding */ completeTask),
 /* harmony export */   decompleteTask: () => (/* binding */ decompleteTask),
 /* harmony export */   deleteTask: () => (/* binding */ deleteTask),
-/* harmony export */   editTask: () => (/* reexport safe */ _taskPopup_js__WEBPACK_IMPORTED_MODULE_2__.editTask)
+/* harmony export */   editTask: () => (/* reexport safe */ _taskPopup_js__WEBPACK_IMPORTED_MODULE_7__.editTask),
+/* harmony export */   getProjectList: () => (/* binding */ getProjectList),
+/* harmony export */   getTaskList: () => (/* binding */ getTaskList),
+/* harmony export */   openAddProject: () => (/* binding */ openAddProject),
+/* harmony export */   resizeElement: () => (/* binding */ resizeElement),
+/* harmony export */   selectAndHighlightTaskSection: () => (/* binding */ selectAndHighlightTaskSection),
+/* harmony export */   setDefaultFirstImpressionTasksAndProjects: () => (/* binding */ setDefaultFirstImpressionTasksAndProjects),
+/* harmony export */   setProjectListFromJSON: () => (/* binding */ setProjectListFromJSON),
+/* harmony export */   setTaskListFromJSON: () => (/* binding */ setTaskListFromJSON),
+/* harmony export */   submitAddProject: () => (/* binding */ submitAddProject),
+/* harmony export */   submitTask: () => (/* binding */ submitTask)
 /* harmony export */ });
 /* harmony import */ var _styles_content_style_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./styles/content/style.scss */ "./src/styles/content/style.scss");
-/* harmony import */ var dompurify__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! dompurify */ "./node_modules/dompurify/dist/purify.js");
-/* harmony import */ var dompurify__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(dompurify__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _taskPopup_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./taskPopup.js */ "./src/taskPopup.js");
-/* harmony import */ var _taskLoading_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./taskLoading.js */ "./src/taskLoading.js");
+/* harmony import */ var _assets_images_chekbox_check_svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./assets/images/chekbox-check.svg */ "./src/assets/images/chekbox-check.svg");
+/* harmony import */ var _assets_images_close_svg__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./assets/images/close.svg */ "./src/assets/images/close.svg");
+/* harmony import */ var _assets_images_edit_svg__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./assets/images/edit.svg */ "./src/assets/images/edit.svg");
+/* harmony import */ var _assets_images_delete_svg__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./assets/images/delete.svg */ "./src/assets/images/delete.svg");
+/* harmony import */ var _assets_images_list_box_svg__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./assets/images/list-box.svg */ "./src/assets/images/list-box.svg");
+/* harmony import */ var dompurify__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! dompurify */ "./node_modules/dompurify/dist/purify.js");
+/* harmony import */ var dompurify__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(dompurify__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _taskPopup_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./taskPopup.js */ "./src/taskPopup.js");
+/* harmony import */ var _taskLoading_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./taskLoading.js */ "./src/taskLoading.js");
+/* harmony import */ var _localStorage__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./localStorage */ "./src/localStorage.js");
+/* harmony import */ var _keyboardShorcuts__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./keyboardShorcuts */ "./src/keyboardShorcuts.js");
+
+
+
+
+
+
+
 
 
 
@@ -1658,16 +1684,24 @@ var currentSection = "inbox";
 var taskList = [];
 var projectList = [];
 var search = "";
-var currentFilters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.Filters)(search, false, false, false, null);
+var currentFilters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.Filters)(search, false, false, false, null);
 var GetID = function () {
   function getGlobalTaskID() {
-    return 0;
+    var maxTaskID = 0;
+    taskList.forEach(function (task) {
+      if (task.id > maxTaskID) maxTaskID = task.id;
+    });
+    return maxTaskID;
   }
   function getGlobalProjectID() {
-    return 0;
+    var maxProjectID = 0;
+    projectList.forEach(function (project) {
+      if (project.id > maxProjectID) maxProjectID = project.id;
+    });
+    return maxProjectID;
   }
-  var globalTaskID = getGlobalTaskID();
-  var globalProjectID = getGlobalProjectID();
+  var globalTaskID;
+  var globalProjectID;
   function forTask() {
     globalTaskID++;
     return globalTaskID;
@@ -1676,15 +1710,21 @@ var GetID = function () {
     globalProjectID++;
     return globalProjectID;
   }
+  function initialize() {
+    globalTaskID = getGlobalTaskID();
+    globalProjectID = getGlobalProjectID();
+  }
   return {
     forTask: forTask,
-    forProject: forProject
+    forProject: forProject,
+    initialize: initialize
   };
 }();
 function Task(title, description, dueDate, priority, project) {
-  var id = GetID.forTask();
+  var completed = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
+  var id = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : null;
+  if (!id) id = GetID.forTask();
   dueDate = dueDate ? dueDate : null;
-  var completed = false;
   function getPriorityClass() {
     if (priority === 1) return "p1";
     if (priority === 2) return "p2";
@@ -1739,9 +1779,25 @@ function Task(title, description, dueDate, priority, project) {
     var cleanDueDate = dueDateDateFormat.getDate() + " " + numberToMonthName(dueDateDateFormat.getMonth() + 1) + " " + dueDateDateFormat.getFullYear();
     return cleanDueDate;
   }
+  function getProjectTitle() {
+    var projectTitle = null;
+    projectList.forEach(function (projectItem) {
+      if (projectItem.id === project) projectTitle = projectItem.title;
+    });
+    return projectTitle;
+  }
+  function getProjectTitleText() {
+    var projectTitle = getProjectTitle();
+    if (projectTitle) return " in " + projectTitle;else return "";
+  }
+  function getProjectTitleElement() {
+    var projectTitleElement;
+    if (!currentSection.includes("project")) projectTitleElement = "<span class=\"project-title\">".concat(getProjectTitleText(), "</span>");else projectTitleElement = "";
+    return projectTitleElement;
+  }
   var getTaskCardHTML = function getTaskCardHTML() {
-    var editIcon = "<img\n    src=\"edit.svg\"\n    alt=\"edit\"\n    class=\"edit-icon icon\"\n  />";
-    return dompurify__WEBPACK_IMPORTED_MODULE_1___default().sanitize("\n    <div\n      class=\"task-card example-card ".concat(getPriorityClass(), " task-").concat(id, "\"\n      data-priority=\"").concat(priority, "\"\n      data-date=\"").concat(dueDate, "\"\n    >\n      <label class=\"checkbox\">\n        <input type=\"checkbox\" />\n        <img\n          src=\"").concat(currentSection !== "completed" ? "chekbox-check.svg" : "close.svg", "\"\n          alt=\"").concat(currentSection !== "completed" ? "check" : "uncheck", "\"\n          class=\"check\"\n        />\n      </label>\n      <div class=\"data\">\n        <div class=\"title\">").concat(title, "</div>\n        <div class=\"description\">\n          ").concat(description, "  \n        </div>\n        <div class=\"due-date\">").concat(getCleanDueDate(), "</div>\n      </div>\n      <div class=\"icons\">\n        <img\n          src=\"edit.svg\"\n          alt=\"edit\"\n          class=\"edit-icon icon\"\n        />\n        <img\n          src=\"delete.svg\"\n          alt=\"delete\"\n          class=\"delete-icon icon\"\n        />\n      </div>\n    </div>"));
+    var projectTitleElement = getProjectTitleElement();
+    return dompurify__WEBPACK_IMPORTED_MODULE_6___default().sanitize("\n    <div\n      class=\"task-card example-card ".concat(getPriorityClass(), " task-").concat(id, "\"\n      data-priority=\"").concat(priority, "\"\n      data-date=\"").concat(dueDate, "\"\n    >\n      <label class=\"checkbox\">\n        <input type=\"checkbox\" />\n        <img\n          src=\"").concat(currentSection !== "completed" ? _assets_images_chekbox_check_svg__WEBPACK_IMPORTED_MODULE_1__ : _assets_images_close_svg__WEBPACK_IMPORTED_MODULE_2__, "\"\n          alt=\"").concat(currentSection !== "completed" ? "check" : "uncheck", "\"\n          class=\"check\"\n        />\n      </label>\n      <div class=\"data\">\n        <div class=\"title\">").concat(title).concat(projectTitleElement, "</div>\n        <div class=\"description\">\n          ").concat(description, "  \n        </div>\n        <div class=\"due-date\">").concat(getCleanDueDate(), "</div>\n      </div>\n      <div class=\"icons\">\n        <img\n          src=").concat(_assets_images_edit_svg__WEBPACK_IMPORTED_MODULE_3__, "\n          alt=\"edit\"\n          class=\"edit-icon icon\"\n        />\n        <img\n          src=").concat(_assets_images_delete_svg__WEBPACK_IMPORTED_MODULE_4__, "\n          alt=\"delete\"\n          class=\"delete-icon icon\"\n        />\n      </div>\n    </div>"));
   };
   return {
     id: id,
@@ -1755,8 +1811,9 @@ function Task(title, description, dueDate, priority, project) {
   };
 }
 function Project(title) {
-  var id = GetID.forProject(),
-    numberOfTasks = 0;
+  var id = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+  var numberOfTasks = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+  if (!id) id = GetID.forProject();
   function validProjectSection(projectSection) {
     if (projectSection.classList.contains("project-".concat(id))) return true;
     return false;
@@ -1775,10 +1832,16 @@ var Menu = function () {
   var projectFormCancel = projectForm.querySelector(".cancel");
   var projectFormSubmit = projectForm.querySelector(".submit");
   var allSections = menu.querySelectorAll(".task-section, .project-section");
-  var allProjectsDeleteIcons = menu.querySelectorAll(".project-section .delete-icon");
   function closeOnMobile() {
     var viewportWidth = window.innerWidth;
-    if (viewportWidth < 600) menu.classList.add("hidden");
+    if (viewportWidth < 800) menu.classList.add("hidden");
+  }
+  function closeOnClickOutsideOnMobile() {
+    var content = document.querySelector("#content");
+    content.addEventListener("click", closeOnMobile);
+    menu.addEventListener("click", function (event) {
+      event.stopPropagation();
+    });
   }
   function initializeHomeButton() {
     var homeButton = document.querySelector("header .home");
@@ -1799,11 +1862,21 @@ var Menu = function () {
       return section.classList.remove("selected");
     });
     selectedSection.classList.add("selected");
+    closeOnMobile();
+  }
+  function removeAllTasksOfProject(project) {
+    //we have to manually go through the array
+    //otherwise the array would skip elements for each deleted element
+    var taskListIndex = 0;
+    while (taskListIndex < taskList.length) {
+      var task = taskList[taskListIndex];
+      if (task.project === project.id) {
+        deleteTask(task);
+      } else taskListIndex++;
+    }
   }
   function removeProject(project) {
-    taskList.forEach(function (task) {
-      if (task.project === project.id) deleteTask(task);
-    });
+    removeAllTasksOfProject(project);
     var projectIndex = projectList.indexOf(project);
     projectList.splice(projectIndex, 1);
     var allProjectAppearances = document.querySelectorAll(".project-".concat(project.id));
@@ -1813,16 +1886,10 @@ var Menu = function () {
     selectTaskSection("Inbox");
     highlightSection(document.querySelector(".inbox"));
   }
-  function initializeLoadedProjects() /* mainly for outside production, projects should be only created in js not html */{
+  function initializeTaskSections() {
     allSections.forEach(function (section) {
       return section.addEventListener("click", function () {
         highlightSection(section);
-      });
-    });
-    allProjectsDeleteIcons.forEach(function (deleteIcon) {
-      return deleteIcon.addEventListener("click", function (event) {
-        removeProject(deleteIcon.parentNode.querySelector(".title").textContent);
-        event.stopPropagation();
       });
     });
   }
@@ -1838,7 +1905,7 @@ var Menu = function () {
     resetProjectForm();
   }
   function getProjectSectionHTML(project) {
-    return "\n    <div class=\"project-section project-".concat(project.id, "\" title=\"").concat(project.title, "\">\n      <img src=\"list-box.svg\" alt=\"your tasks\" class=\"project-icon icon\">\n      <div class=\"title\">").concat(project.title, "</div>\n      <div class=\"number-of-tasks\"></div>\n      <img src=\"delete.svg\" alt=\"delete\" class=\"icon delete-icon\">\n    </div>");
+    return "\n    <button class=\"project-section project-".concat(project.id, "\" title=\"").concat(project.title, "\">\n      <img src=").concat(_assets_images_list_box_svg__WEBPACK_IMPORTED_MODULE_5__, " alt=\"your tasks\" class=\"project-icon icon\">\n      <div class=\"title\">").concat(project.title, "</div>\n      <div class=\"number-of-tasks\"></div>\n      <img src=").concat(_assets_images_delete_svg__WEBPACK_IMPORTED_MODULE_4__, " alt=\"delete\" class=\"icon delete-icon\">\n    </button>");
   }
   function addMenuProjectElementListeners(project) {
     var projectElement = document.querySelector("#menu .projects-sections .project-".concat(project.id));
@@ -1862,7 +1929,18 @@ var Menu = function () {
     newProjectSection.outerHTML = getProjectSectionHTML(project);
     addMenuProjectElementListeners(project);
     allSections = menu.querySelectorAll(".task-section, .project-section:not(.add-project)");
-    (0,_taskPopup_js__WEBPACK_IMPORTED_MODULE_2__.createNewProjectDropdownOption)(project);
+    (0,_taskPopup_js__WEBPACK_IMPORTED_MODULE_7__.createNewProjectDropdownOption)(project);
+  }
+  function submitProjectFromData(project) {
+    var newProjectSection = document.createElement("div");
+    addProject.parentElement.insertBefore(newProjectSection, addProject);
+    newProjectSection.outerHTML = getProjectSectionHTML(project);
+    addMenuProjectElementListeners(project);
+    allSections = menu.querySelectorAll(".task-section, .project-section:not(.add-project)");
+    (0,_taskPopup_js__WEBPACK_IMPORTED_MODULE_7__.createNewProjectDropdownOption)(project);
+  }
+  function submitAllProjectsFromData(projectList) {
+    projectList.forEach(submitProjectFromData);
   }
   function initializeProjectForm() {
     projectFormCancel.addEventListener("click", closeProjectForm);
@@ -1883,83 +1961,121 @@ var Menu = function () {
   }
   function initialize() {
     closeOnMobile();
+    closeOnClickOutsideOnMobile();
     initializeHomeButton();
     initializeMenuToggle();
-    initializeLoadedProjects();
+    initializeTaskSections();
     initializeProjectForm();
   }
   return {
-    initialize: initialize
+    initialize: initialize,
+    submitAllProjectsFromData: submitAllProjectsFromData,
+    highlightSection: highlightSection,
+    openProjectForm: openProjectForm,
+    closeProjectForm: closeProjectForm,
+    submitProject: submitProject
   };
 }();
+function selectAndHighlightTaskSection(taskSectionTitle) {
+  selectTaskSection(taskSectionTitle);
+  taskSectionTitle = taskSectionTitle.toLowerCase();
+  var menu = document.querySelector("#menu");
+  switch (taskSectionTitle) {
+    case "inbox":
+      Menu.highlightSection(menu.querySelector(".inbox"));
+      break;
+    case "today":
+      Menu.highlightSection(menu.querySelector(".today"));
+      break;
+    case "this week":
+      Menu.highlightSection(menu.querySelector(".this-week"));
+      break;
+    case "completed":
+      Menu.highlightSection(menu.querySelector(".done"));
+      break;
+    default:
+      throw new Error("Weird taskSectionTitle!");
+  }
+}
 function hideLoadingScreen() {
   var loadingElement = document.querySelector("#loading-screen");
   var bodyStyles = window.getComputedStyle(document.body);
   var hideDelay = bodyStyles.getPropertyValue("--loading-screen-hide-delay");
   var numberOfSeconds = +hideDelay.replace(/[^0-9\.]+/g, "");
+  window.addEventListener("click", function () {
+    loadingElement.style.display = "none";
+  });
   setTimeout(function () {
     loadingElement.style.display = "none";
   }, numberOfSeconds * 1000);
 }
+function resizeElement(element) {
+  element.style.height = "auto";
+  element.style.height = element.scrollHeight + "px";
+}
 function autoResizeElements() /* used for description textarea in task popup */{
   var elements = document.querySelectorAll(".auto-resize");
   elements.forEach(function (element) {
-    element.addEventListener("input", autoResize, false);
+    element.addEventListener("input", function () {
+      resizeElement(element);
+    }, false);
   });
-  function autoResize() {
-    this.style.height = "auto";
-    this.style.height = this.scrollHeight + "px";
-  }
 }
-function cancelTask() {}
-function submitTask(editingTask) {
+function cancelTask(editingTask) {
+  editingTask.value = null;
+}
+function getTaskPopupData() {
   var taskPopup = document.querySelector(".task-popup");
   var taskPopupFormData = new FormData(taskPopup);
-  var title = taskPopupFormData.get("title");
-  var description = taskPopupFormData.get("description");
-  var dueDate = taskPopupFormData.get("date");
-  var project = +taskPopup.querySelector(".project-button").className.replace("project-button", "").replace(" project-", "");
-  var priority;
-  var priorityClass = taskPopup.querySelector(".priority-button .text").textContent;
-  switch (priorityClass) {
+  var data = {};
+  data.title = taskPopupFormData.get("title");
+  data.description = taskPopupFormData.get("description");
+  data.dueDate = taskPopupFormData.get("date");
+  data.project = +taskPopup.querySelector(".project-button").className.replace("project-button", "").replace(" project-", "");
+  var priorityOptionText = taskPopup.querySelector(".priority-button .text").textContent;
+  switch (priorityOptionText) {
     case "P1":
-      priority = 1;
+      data.priority = 1;
       break;
     case "P2":
-      priority = 2;
+      data.priority = 2;
       break;
     case "P3":
-      priority = 3;
+      data.priority = 3;
       break;
     default:
-      priority = null;
+      data.priority = null;
   }
-  var newTask = Task(title, description, dueDate, priority, project);
-  if (!editingTask) {
+  return data;
+}
+function submitTask(editingTask) {
+  var taskPopupData = getTaskPopupData();
+  var newTask,
+    editingACompletedTask = editingTask.value && currentSection === "completed";
+  if (editingACompletedTask) newTask = Task(taskPopupData.title, taskPopupData.description, taskPopupData.dueDate, taskPopupData.priority, taskPopupData.project, true);else newTask = Task(taskPopupData.title, taskPopupData.description, taskPopupData.dueDate, taskPopupData.priority, taskPopupData.project, false);
+  if (!editingTask.value) {
     taskList.push(newTask);
   } else {
-    taskList = taskList.map(function (task) {
-      if (task === editingTask) return newTask;
-      return task;
-    });
-    editingTask = null;
+    var editingTaskIndex = taskList.indexOf(editingTask.value);
+    taskList[editingTaskIndex] = newTask;
+    editingTask.value = null;
   }
-  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.loadTasks)(taskList, projectList, currentFilters);
+  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.loadTasks)(taskList, projectList, currentFilters);
 }
 function deleteTask(task) {
   var index = taskList.indexOf(task);
   taskList.splice(index, 1);
-  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.loadTasks)(taskList, projectList, currentFilters);
+  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.loadTasks)(taskList, projectList, currentFilters);
 }
 function completeTask(task) {
   var index = taskList.indexOf(task);
   taskList[index].completed = true;
-  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.loadTasks)(taskList, projectList, currentFilters);
+  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.loadTasks)(taskList, projectList, currentFilters);
 }
 function decompleteTask(task) {
   var index = taskList.indexOf(task);
   taskList[index].completed = false;
-  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.loadTasks)(taskList, projectList, currentFilters);
+  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.loadTasks)(taskList, projectList, currentFilters);
 }
 function getCurrentSection() {
   return currentSection;
@@ -1971,31 +2087,31 @@ function selectTaskSection(taskSectionTitle) {
   var filters;
   switch (taskSectionTitle) {
     case "inbox":
-      filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.Filters)(search, false, false, false, null);
+      filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.Filters)(search, false, false, false, null);
       break;
     case "today":
-      filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.Filters)(search, true, false, false, null);
+      filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.Filters)(search, true, false, false, null);
       break;
     case "this week":
-      filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.Filters)(search, false, true, false, null);
+      filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.Filters)(search, false, true, false, null);
       break;
     case "completed":
-      filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.Filters)(search, false, false, true, null);
+      filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.Filters)(search, false, false, true, null);
       break;
     default:
       throw new Error("Weird taskSectionTitle!");
   }
   currentSection = taskSectionTitle;
   currentFilters = filters;
-  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.loadTasks)(taskList, projectList, filters);
+  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.loadTasks)(taskList, projectList, filters);
 }
 function loadProjectTasks(project) {
   var contentTitle = document.querySelector(".content-title");
   contentTitle.textContent = project.title;
   currentSection = "project-".concat(project.id);
-  var filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.Filters)(search, false, false, false, project);
+  var filters = (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.Filters)(search, false, false, false, project);
   currentFilters = filters;
-  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.loadTasks)(taskList, projectList, filters);
+  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.loadTasks)(taskList, projectList, filters);
 }
 function initializeLoadTaskListeners() {
   var taskSections = document.querySelectorAll(".task-section");
@@ -2009,14 +2125,273 @@ function initializeLoadTaskListeners() {
   searchBar.addEventListener("input", function () {
     search = searchBar.value;
     currentFilters.setSearch(search);
-    (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_3__.loadTasks)(taskList, projectList, currentFilters);
+    (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.loadTasks)(taskList, projectList, currentFilters);
   });
+  searchBar.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") searchBar.blur();
+  });
+}
+function getTaskList() {
+  return taskList;
+}
+function getProjectList() {
+  return projectList;
+}
+function setTaskListFromJSON(newTaskList) {
+  taskList = [];
+  newTaskList.forEach(function (task) {
+    taskList.push(Task(task.title, task.description, task.dueDate, task.priority, task.project, task.completed, task.id));
+  });
+}
+function setProjectListFromJSON(newProjectList) {
+  projectList = [];
+  newProjectList.forEach(function (project) {
+    projectList.push(Project(project.title, project.id, project.numberOfTasks));
+  });
+}
+function getThisWeekDate() {
+  var today = new Date();
+  var thisWeekDate = new Date();
+  var oneDayInMilliseconds = 24 * 60 * 60 * 1000;
+  if (today.getDay() !== 0) {
+    thisWeekDate.setTime(today.getTime() - oneDayInMilliseconds);
+  } else {
+    thisWeekDate.setTime(today.getTime() + oneDayInMilliseconds);
+  }
+  return thisWeekDate;
+}
+function setDefaultFirstImpressionTasksAndProjects() {
+  GetID.initialize();
+  var todayDueDate = new Date();
+  var thisWeekDueDate = getThisWeekDate();
+  var exampleProject = Project("Example");
+  var shortcutsProject = Project("Shortcuts");
+  var welcomeToVertexTask = Task("Welcome to Vertex!", " We are here to help you boost your productivity! Feel free to create any task or project you wish! You can delete these tasks anytime! ", null, 1, null);
+  var projectsForOrganizingTask = Task("Use projects for organizing!", " Organize all of your tasks through projects. Sorting everything has never been easier! ", "", 1, exampleProject.id);
+  var shortcutsTask = Task("Shortcuts", " Use your keyboard on desktop to navigate your tasks faster. ", null, 1, shortcutsProject.id);
+  var completedTask = Task("Completed tasks", " You can see all of your completed tasks here. Be amazed at how much you have been able to do. ", todayDueDate, 1, null, true);
+  var sortYourTasksTask = Task(" Sort your tasks however you want! ", " We offer 4 color coded priority options for you to sort your tasks. You can also set a due date for each specific one. ", null, 1, null);
+  var weeklyTask = Task("Weekly tasks", " You can also see the tasks for this week in the this week section ", thisWeekDueDate, 2, null);
+  var todayTask = Task("Today tasks", " You can see the tasks for today in the today section in the menu. ", todayDueDate, 2, null);
+  var taskSectionsTask = Task("Task sections", " Navigate through task sections by pressing keys: press I or H for inbox, D for today, W for this week and C for completed. ", null, 3, shortcutsProject.id);
+  var menuTask = Task("Menu", " Toggle your menu with M ", null, 3, shortcutsProject.id);
+  var searchTask = Task("Search", " Enter the searchbar with S ", null, 3, shortcutsProject.id);
+  var addProjectsAndTasksTask = Task("Add projects and tasks", " Use keyboard combos to open forms: A+T for adding a task and A+P for adding a project ", null, 3, shortcutsProject.id);
+  var taskFormTask = Task("Task form", " The task form also has it's own shortcuts: CTRL+ENTER to submit it, ESC to cancel it and 1,2,3,N to select their respective priorities. ", null, 3, shortcutsProject.id);
+  var projectFormTask = Task("Project form", " The project form can also be submitted with CTRL+ENTER and canceled with ESC ", null, 3, shortcutsProject.id);
+  projectList.push(exampleProject, shortcutsProject);
+  taskList.push(welcomeToVertexTask, projectsForOrganizingTask, shortcutsTask, completedTask, sortYourTasksTask, todayTask, weeklyTask, taskSectionsTask, menuTask, searchTask, addProjectsAndTasksTask, taskFormTask, projectFormTask);
+}
+function initializeData() {
+  (0,_localStorage__WEBPACK_IMPORTED_MODULE_9__.restoreData)();
+  GetID.initialize();
+  //GetID gets base id from taskList and projectList,
+  //therefore need to load them first
+  Menu.submitAllProjectsFromData(projectList);
+  (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.loadTasks)(taskList, projectList, (0,_taskLoading_js__WEBPACK_IMPORTED_MODULE_8__.Filters)(search, false, false, false, null));
 }
 hideLoadingScreen();
 Menu.initialize();
+initializeData();
 autoResizeElements();
-(0,_taskPopup_js__WEBPACK_IMPORTED_MODULE_2__.initializeTaskPopup)(submitTask, cancelTask, getCurrentSection);
+(0,_taskPopup_js__WEBPACK_IMPORTED_MODULE_7__.initializeTaskPopup)(submitTask, cancelTask, getCurrentSection);
 initializeLoadTaskListeners();
+(0,_keyboardShorcuts__WEBPACK_IMPORTED_MODULE_10__.initializeKeyboardShortcuts)();
+
+
+
+var openAddProject = Menu.openProjectForm;
+var closeAddProject = Menu.closeProjectForm;
+var submitAddProject = Menu.submitProject;
+
+
+/***/ }),
+
+/***/ "./src/keyboardShorcuts.js":
+/*!*********************************!*\
+  !*** ./src/keyboardShorcuts.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   initializeKeyboardShortcuts: () => (/* binding */ initializeKeyboardShortcuts)
+/* harmony export */ });
+/* harmony import */ var ___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! . */ "./src/index.js");
+/* harmony import */ var _taskPopup__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./taskPopup */ "./src/taskPopup.js");
+
+
+var menu = document.querySelector("#menu");
+var serachbar = document.querySelector("#search-field");
+var projectForm = menu.querySelector(".project-form");
+var pressedA = false;
+function focusInInput() {
+  var activeElement = document.activeElement;
+  return activeElement.matches("input");
+}
+function focusInTextarea() {
+  var activeElement = document.activeElement;
+  return activeElement.matches("textarea");
+}
+function focusInSubmitButton() {
+  var activeElement = document.activeElement;
+  return activeElement.matches("button.submit");
+}
+function taskPopupVisible() {
+  var taskPopupContainer = document.querySelector(".task-popup-container");
+  if (taskPopupContainer.classList.contains("visible")) return true;
+  return false;
+}
+function projectFormOpen() {
+  var addingProject = document.querySelector(".add-project.adding");
+  return addingProject ? true : false;
+}
+function proccessKeyOutsideForms(event) {
+  var activeElement = document.activeElement;
+  var focusInInput = activeElement.matches("input");
+  if (event.ctrlKey) return;
+  if (focusInInput) return;
+  var key = event.key.toLowerCase();
+  var preventDefault = true;
+  switch (key) {
+    case "m":
+      menu.classList.toggle("hidden");
+      break;
+    case "s":
+      serachbar.focus();
+      break;
+    case "h":
+    case "i":
+      (0,___WEBPACK_IMPORTED_MODULE_0__.selectAndHighlightTaskSection)("Inbox");
+      break;
+    case "d":
+      (0,___WEBPACK_IMPORTED_MODULE_0__.selectAndHighlightTaskSection)("Today");
+      break;
+    case "w":
+      (0,___WEBPACK_IMPORTED_MODULE_0__.selectAndHighlightTaskSection)("This week");
+      break;
+    case "c":
+      (0,___WEBPACK_IMPORTED_MODULE_0__.selectAndHighlightTaskSection)("Completed");
+      break;
+    case "a":
+      pressedA = true;
+      setTimeout(function () {
+        pressedA = false;
+      }, 5000);
+      break;
+    case "t":
+      if (pressedA) (0,_taskPopup__WEBPACK_IMPORTED_MODULE_1__.showTaskPopup)();
+      break;
+    case "p":
+      if (pressedA) (0,___WEBPACK_IMPORTED_MODULE_0__.openAddProject)();
+      break;
+    default:
+      preventDefault = false;
+  }
+  if (key !== "a") pressedA = false;
+  if (preventDefault) event.preventDefault();
+}
+function proccessKeyWithingTaskForm(event) {
+  switch (event.key) {
+    case "1":
+      if (focusInInput() || focusInTextarea()) return;
+      var priority1Option = document.querySelector(".task-popup .priority-1");
+      (0,_taskPopup__WEBPACK_IMPORTED_MODULE_1__.submitPriorityOption)(priority1Option);
+      break;
+    case "2":
+      if (focusInInput() || focusInTextarea()) return;
+      var priority2Option = document.querySelector(".task-popup .priority-2");
+      (0,_taskPopup__WEBPACK_IMPORTED_MODULE_1__.submitPriorityOption)(priority2Option);
+      break;
+    case "3":
+      if (focusInInput() || focusInTextarea()) return;
+      var priority3Option = document.querySelector(".task-popup .priority-3");
+      (0,_taskPopup__WEBPACK_IMPORTED_MODULE_1__.submitPriorityOption)(priority3Option);
+      break;
+    case "n":
+      if (focusInInput() || focusInTextarea()) return;
+      var priorityNoneOption = document.querySelector(".task-popup .priority-none");
+      (0,_taskPopup__WEBPACK_IMPORTED_MODULE_1__.submitPriorityOption)(priorityNoneOption);
+      break;
+  }
+  if ((event.keyCode === 10 || event.keyCode === 13) && event.ctrlKey) {
+    var taskPopup = document.querySelector(".task-popup");
+    if (focusInInput()) return;
+    //this is because pressing enter in an input element triggers a form submition,
+    //so it would trigger twice with this shorcut
+    if (focusInSubmitButton()) return;
+    //same for the submit button in the form,
+    if (!taskPopup.matches(":valid")) return;
+    (0,_taskPopup__WEBPACK_IMPORTED_MODULE_1__.submitTaskPopup)(___WEBPACK_IMPORTED_MODULE_0__.submitTask);
+    event.stopPropagation();
+  }
+  if (event.keyCode === 27) {
+    (0,_taskPopup__WEBPACK_IMPORTED_MODULE_1__.cancelTaskPopup)(___WEBPACK_IMPORTED_MODULE_0__.cancelTask);
+    event.stopPropagation();
+  }
+}
+function proccesKeyWithinProjectForm(event) {
+  if ((event.keyCode === 10 || event.keyCode === 13) && event.ctrlKey) {
+    var _projectForm = document.querySelector(".project-form");
+    if (focusInInput()) return;
+    //this is because pressing enter in an input element triggers a form submition,
+    //so it would trigger twice with this shorcut
+    if (focusInSubmitButton()) return;
+    //same for the submit button in the form,
+    if (!_projectForm.matches(":valid")) return;
+    (0,___WEBPACK_IMPORTED_MODULE_0__.submitAddProject)();
+    event.stopPropagation();
+  }
+  if (event.keyCode === 27) {
+    (0,___WEBPACK_IMPORTED_MODULE_0__.closeAddProject)();
+    event.stopPropagation();
+  }
+  console.log(event);
+}
+function proccessKey(event) {
+  if (taskPopupVisible()) proccessKeyWithingTaskForm(event);else if (projectFormOpen()) proccesKeyWithinProjectForm(event);else proccessKeyOutsideForms(event);
+}
+function initializeKeyboardShortcuts() {
+  window.addEventListener("keydown", proccessKey);
+}
+
+/***/ }),
+
+/***/ "./src/localStorage.js":
+/*!*****************************!*\
+  !*** ./src/localStorage.js ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   restoreData: () => (/* binding */ restoreData)
+/* harmony export */ });
+/* harmony import */ var ___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! . */ "./src/index.js");
+
+Storage.prototype.setObject = function (key, value) {
+  this.setItem(key, JSON.stringify(value));
+};
+Storage.prototype.getObject = function (key) {
+  return JSON.parse(this.getItem(key));
+};
+function storeData() {
+  sessionStorage.setObject("tasks", (0,___WEBPACK_IMPORTED_MODULE_0__.getTaskList)());
+  sessionStorage.setObject("projects", (0,___WEBPACK_IMPORTED_MODULE_0__.getProjectList)());
+  sessionStorage.setItem("visitedSiteBefore", true);
+}
+function restoreData() {
+  var visitedSiteBefore = sessionStorage.getItem("visitedSiteBefore");
+  if (!visitedSiteBefore) {
+    (0,___WEBPACK_IMPORTED_MODULE_0__.setDefaultFirstImpressionTasksAndProjects)();
+  } else {
+    (0,___WEBPACK_IMPORTED_MODULE_0__.setTaskListFromJSON)(sessionStorage.getObject("tasks"));
+    (0,___WEBPACK_IMPORTED_MODULE_0__.setProjectListFromJSON)(sessionStorage.getObject("projects"));
+  }
+}
+window.addEventListener("beforeunload", storeData);
 
 
 /***/ }),
@@ -2119,7 +2494,6 @@ function addTaskToContent(task) {
   deleteIcon.addEventListener("click", function () {
     (0,_index__WEBPACK_IMPORTED_MODULE_0__.deleteTask)(task);
   });
-  console.log(completeCheckbox);
   completeCheckbox.addEventListener("click", function (event) {
     event.preventDefault();
     if (!task.completed) (0,_index__WEBPACK_IMPORTED_MODULE_0__.completeTask)(task);else (0,_index__WEBPACK_IMPORTED_MODULE_0__.decompleteTask)(task);
@@ -2155,6 +2529,12 @@ function sameWeekDates(date1, date2) {
     return date2HasEarlierWeekDay;
   } else throw new Error("Odd times, this error should never be reached through code");
 }
+function sameDayDates(date1, date2) {
+  if (date1.getFullYear() !== date2.getFullYear()) return false;
+  if (date1.getMonth() !== date2.getMonth()) return false;
+  if (date1.getDate() !== date2.getDate()) return false;
+  return true;
+}
 function comparePriorities(priority1, priority2) {
   var priority1GoesFirst = -1,
     priority2GoesFirst = 1,
@@ -2173,13 +2553,13 @@ function sortedTaskList(taskList) {
 }
 function Filters(search, todayOnly, thisWeekOnly, completedOnly, project) {
   function _validSearch(task) {
-    if (search && !task.title.includes(search) && !task.description.includes(search)) return false;
+    if (search && !task.title.toLowerCase().includes(search.toLowerCase()) && !task.description.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   }
   function _validDate(taskDate) {
     if (!taskDate) return false;
     var currentDate = new Date();
-    if (todayOnly && taskDate.getDate() !== currentDate.getDate()) return false;
+    if (todayOnly && !sameDayDates(taskDate, currentDate)) return false;
     if (thisWeekOnly && !sameWeekDates(taskDate, currentDate)) return false;
     return true;
   }
@@ -2219,7 +2599,6 @@ function Filters(search, todayOnly, thisWeekOnly, completedOnly, project) {
   };
 }
 function loadTasks(taskList, projectList, filters) {
-  console.log("loading tasks");
   taskList = sortedTaskList(taskList);
   removeAllTaskCards();
   var filteredTaskList = taskList.filter(filters.taskIsValid);
@@ -2241,10 +2620,16 @@ function loadTasks(taskList, projectList, filters) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   cancelTaskPopup: () => (/* binding */ cancelTaskPopup),
 /* harmony export */   createNewProjectDropdownOption: () => (/* binding */ createNewProjectDropdownOption),
 /* harmony export */   editTask: () => (/* binding */ editTask),
-/* harmony export */   initializeTaskPopup: () => (/* binding */ initializeTaskPopup)
+/* harmony export */   initializeTaskPopup: () => (/* binding */ initializeTaskPopup),
+/* harmony export */   showTaskPopup: () => (/* binding */ showTaskPopup),
+/* harmony export */   submitPriorityOption: () => (/* binding */ submitPriorityOption),
+/* harmony export */   submitTaskPopup: () => (/* binding */ submitTaskPopup)
 /* harmony export */ });
+/* harmony import */ var ___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! . */ "./src/index.js");
+
 var taskPopupContainer = document.querySelector(".task-popup-container");
 var taskPopup = document.querySelector(".task-popup");
 var addTaskButtons = document.querySelectorAll(".add-task-button");
@@ -2263,14 +2648,17 @@ var priorityDropdown = taskPopup.querySelector(".priority-dropdown");
 var priorityDropdownOptions = priorityDropdown.querySelectorAll(".dropdown-option");
 var projectDropdownOptions = projectDropdown.querySelectorAll(".dropdown-option");
 var dateInput = taskPopup.querySelector("input.date-picker");
-var getCurrentSection, currentEditingTask;
+var getCurrentSection,
+  currentEditingTask = {
+    value: null
+  }; /* object so that it can be passed around files */
 function setEditingTaskDefaultOptions() {
-  titleInput.value = currentEditingTask.title;
-  descriptionInput.value = currentEditingTask.description;
-  dateInput.value = currentEditingTask.dueDate;
-  var chosenPriorityOption = taskPopup.querySelector(".priority-".concat(currentEditingTask.priority ? currentEditingTask.priority : "none"));
+  titleInput.value = currentEditingTask.value.title;
+  descriptionInput.value = currentEditingTask.value.description;
+  dateInput.value = currentEditingTask.value.dueDate;
+  var chosenPriorityOption = taskPopup.querySelector(".priority-".concat(currentEditingTask.value.priority ? currentEditingTask.value.priority : "none"));
   submitPriorityOption(chosenPriorityOption);
-  var chosenProjectOption = taskPopup.querySelector(".project-".concat(taskPopup.project));
+  var chosenProjectOption = taskPopup.querySelector(".project-".concat(currentEditingTask.value.project));
   if (chosenProjectOption) submitProjectOption(chosenProjectOption);
 }
 function setCurrentSectionDefaultOptions() {
@@ -2279,9 +2667,10 @@ function setCurrentSectionDefaultOptions() {
 }
 function showTaskPopup() {
   setCurrentSectionDefaultOptions();
-  if (currentEditingTask) setEditingTaskDefaultOptions();
+  if (currentEditingTask.value) setEditingTaskDefaultOptions();
   taskPopupContainer.style.display = "flex";
   taskPopupContainer.classList.add("visible");
+  (0,___WEBPACK_IMPORTED_MODULE_0__.resizeElement)(descriptionInput);
   titleInput.focus();
 }
 function hideTaskPopup() {
@@ -2306,15 +2695,16 @@ function resetTaskPopup() {
   projectSelectionButtonImage.src = "inbox.svg";
   projectSelectionButtonText.textContent = "Inbox";
 }
-function cancelTaskPopup() {
+function cancelTaskPopup(cancelFunction) {
   hideTaskPopup();
+  cancelFunction(currentEditingTask);
 }
 function submitTaskPopup(submitFunction) {
   submitFunction(currentEditingTask);
   hideTaskPopup();
 }
 function editTask(task) {
-  currentEditingTask = task;
+  currentEditingTask.value = task;
   showTaskPopup();
 }
 function openDropdown(dropdownElement) {
@@ -2353,6 +2743,10 @@ function submitProjectOption(pickedOption) {
   projectSelectionButtonImage.src = pickedOptionImgSrc;
   projectSelectionButton.className = pickedOption.className.replace("dropdown-option", "project-button");
 }
+function dropdownIsOpen(dropdownElement) {
+  if (dropdownElement.classList.contains("visible")) return true;
+  return false;
+}
 function initializePrioritySelection() {
   taskPopup.addEventListener("click", function () {
     closeDropdown(priorityDropdown);
@@ -2361,8 +2755,10 @@ function initializePrioritySelection() {
     closeDropdown(priorityDropdown);
   });
   prioritySelectionButton.addEventListener("click", function (event) {
-    openDropdown(priorityDropdown);
-    closeDropdown(projectDropdown);
+    if (!dropdownIsOpen(priorityDropdown)) {
+      openDropdown(priorityDropdown);
+      closeDropdown(projectDropdown);
+    } else closeDropdown(priorityDropdown);
     event.stopPropagation();
   });
   priorityDropdown.addEventListener("click", function (event) {
@@ -2382,8 +2778,10 @@ function initializeProjectSelection() {
     closeDropdown(projectDropdown);
   });
   projectSelectionButton.addEventListener("click", function (event) {
-    openDropdown(projectDropdown);
-    closeDropdown(priorityDropdown);
+    if (!dropdownIsOpen(projectDropdown)) {
+      openDropdown(projectDropdown);
+      closeDropdown(priorityDropdown);
+    } else closeDropdown(projectDropdown);
     event.stopPropagation();
   });
   projectDropdown.addEventListener("click", function (event) {
@@ -2396,7 +2794,7 @@ function initializeProjectSelection() {
   });
 }
 function getProjectDropdownOptionHTML(project) {
-  return "\n  <div class=\"dropdown-option project-".concat(project.id, "\">\n    <img src=\"list-box.svg\" alt=\"project\">\n    <div class=\"text\">").concat(project.title, "</div>\n  </div>");
+  return "\n  <button type=\"button\" class=\"dropdown-option project-".concat(project.id, "\">\n    <img src=\"list-box.svg\" alt=\"project\">\n    <div class=\"text\">").concat(project.title, "</div>\n  </button>");
 }
 function createNewProjectDropdownOption(project) {
   var newDropdownOption = document.createElement("div");
@@ -2411,19 +2809,17 @@ function initializeTaskPopup(submitFunction, cancelFunction, getCurrentSectionFu
   getCurrentSection = getCurrentSectionFunction;
   addTaskButtons.forEach(function (taskButton) {
     return taskButton.addEventListener("click", function () {
-      showTaskPopup(null);
+      showTaskPopup();
     });
   });
   taskPopup.addEventListener("click", function (event) {
     event.stopPropagation();
   });
   taskPopupContainer.addEventListener("click", function () {
-    cancelTaskPopup();
-    cancelFunction();
+    cancelTaskPopup(cancelFunction);
   });
   cancelTaskButton.addEventListener("click", function () {
-    cancelTaskPopup();
-    cancelFunction();
+    cancelTaskPopup(cancelFunction);
   });
   submitTaskButton.addEventListener("click", function () {
     if (taskPopup.matches(":valid")) submitTaskPopup(submitFunction);
@@ -2459,15 +2855,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require__(/*! ../../assets/fonts/CodeNextBook.ttf */ "./src/assets/fonts/CodeNextBook.ttf"), __webpack_require__.b);
-var ___CSS_LOADER_URL_IMPORT_1___ = new URL(/* asset import */ __webpack_require__(/*! ../../assets/fonts/CodeNextRegular.ttf */ "./src/assets/fonts/CodeNextRegular.ttf"), __webpack_require__.b);
+var ___CSS_LOADER_URL_IMPORT_0___ = new URL(/* asset import */ __webpack_require__(/*! ../../assets/fonts/Masiva-Regular.otf */ "./src/assets/fonts/Masiva-Regular.otf"), __webpack_require__.b);
+var ___CSS_LOADER_URL_IMPORT_1___ = new URL(/* asset import */ __webpack_require__(/*! ../../assets/fonts/Masiva-Medium.otf */ "./src/assets/fonts/Masiva-Medium.otf"), __webpack_require__.b);
 var ___CSS_LOADER_URL_IMPORT_2___ = new URL(/* asset import */ __webpack_require__(/*! ../../assets/images/check.svg */ "./src/assets/images/check.svg"), __webpack_require__.b);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 var ___CSS_LOADER_URL_REPLACEMENT_1___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_1___);
 var ___CSS_LOADER_URL_REPLACEMENT_2___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_2___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "@font-face {\n  font-family: CodeNextBook;\n  src: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n}\n@font-face {\n  font-family: CodeNextRegular;\n  src: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + ");\n}\n@keyframes load-logo {\n  0% {\n    width: 0px;\n  }\n  50% {\n    width: calc(0.405 * var(--logo-size));\n  }\n  54% {\n    width: calc(0.405 * var(--logo-size));\n  }\n  100% {\n    width: var(--logo-size);\n  }\n}\n@keyframes fade-in {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n@keyframes fade-out {\n  from {\n    opacity: 1;\n  }\n  to {\n    opacity: 0;\n  }\n}\n@keyframes hide-menu-to-left {\n  0% {\n    transform: translate(0);\n    width: var(--menu-size);\n  }\n  99% {\n    transform: translate(-100%, 0);\n    width: var(--menu-size);\n  }\n  100% {\n    width: 0px;\n  }\n}\n@keyframes show-menu {\n  0% {\n    transform: translate(-100%, 0);\n    width: var(--menu-size);\n  }\n  100% {\n    transform: translate(0);\n    width: var(--menu-size);\n  }\n}\n@keyframes show-popup {\n  0% {\n    transform: translate(0, 100px);\n    opacity: 0;\n    width: calc(var(--task-popup-width) * 0.9);\n  }\n  100% {\n    transform: translate(0, 0);\n    opacity: 1;\n    width: var(--task-popup-width);\n  }\n}\n@keyframes hide-popup {\n  0% {\n    transform: translate(0, 0);\n    opacity: 1;\n    width: var(--task-popup-width);\n  }\n  100% {\n    transform: translate(0, 50px);\n    opacity: 0;\n    width: calc(var(--task-popup-width) * 0.9);\n  }\n}\nbody {\n  --loading-screen-hide-delay: 0.7s;\n  --logo-size: min(500px, 90vw);\n  --header-color: #a93d44;\n  --header-size: 60px;\n  --main-bgc: #e9ecef;\n  --header-icon-color: #fafbfb;\n  --menu-bgc: #eae2e5;\n  --menu-size: min(420px, 90vw);\n  --menu-snap-time: 0.2s;\n  --task-popup-width: min(800px, 90vw);\n  --task-popup-snap-time: 0.3s;\n}\n\n@media (max-height: 800px) {\n  body {\n    --logo-size: min(400px, 90vw);\n  }\n}\n@media (min-width: 1200px) {\n  body {\n    --menu-size: min(430px, 90vw);\n  }\n}\n#loading-screen {\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  padding-top: 15vh;\n  padding-bottom: 10vh;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 40px;\n  animation: fade-out 0.5s ease 4s forwards;\n  background-color: var(--main-bgc);\n  z-index: 10000;\n}\n#loading-screen .logo-container {\n  height: var(--logo-size);\n  width: var(--logo-size);\n}\n#loading-screen .logo-container .loading-logo {\n  height: var(--logo-size);\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_2___ + ");\n  background-size: var(--logo-size);\n  width: 0px;\n  animation: load-logo 0.5s forwards ease 0.5s;\n}\n#loading-screen .text {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 10px;\n}\n#loading-screen h1 {\n  margin-bottom: 0;\n  margin-top: 10px;\n  font-size: 2.5rem;\n  letter-spacing: 2px;\n  opacity: 0;\n  animation: fade-in 0.5s forwards ease 1.5s;\n}\n#loading-screen p {\n  margin: 0;\n  font-size: min(1.4rem, 6vw);\n  letter-spacing: 0.5px;\n  opacity: 0;\n  animation: fade-in 0.5s forwards ease 2.5s;\n}\n\n@media (max-height: 800px) {\n  #loading-screen {\n    padding-top: 7vh;\n    gap: 60px;\n  }\n  #loading-screen .text {\n    gap: 20px;\n  }\n}\n@media (min-width: 800px) {\n  #loading-screen {\n    gap: 80px;\n  }\n  #loading-screen .text {\n    gap: 30px;\n  }\n}\nheader {\n  position: sticky;\n  box-sizing: border-box;\n  height: var(--header-size);\n  width: 100vw;\n  padding-left: 20px;\n  padding-right: 20px;\n  background-color: var(--header-color);\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 10px;\n}\nheader > * {\n  flex: 0 0 auto;\n}\nheader .icon {\n  box-sizing: border-box;\n  height: 40px;\n  border-radius: 7px;\n  cursor: pointer;\n}\nheader .icon:hover {\n  background-color: rgba(255, 255, 255, 0.1);\n}\nheader .add-icon {\n  padding: 5px;\n}\nheader .search-bar {\n  flex: 0 1 auto;\n  height: 40px;\n  width: 300px;\n  margin-right: auto;\n  border-radius: 7px;\n  display: flex;\n  flex-direction: row;\n  gap: 5px;\n  background-color: rgba(255, 255, 255, 0.1);\n  transition: all 0.15s;\n  cursor: pointer;\n}\nheader .search-bar:hover, header .search-bar:focus-within {\n  background-color: #fffafa;\n}\nheader .search-bar:hover .icon, header .search-bar:focus-within .icon {\n  filter: invert(100%);\n  background-color: transparent;\n}\nheader .search-bar:hover #search-field, header .search-bar:focus-within #search-field {\n  color: rgb(22, 21, 21);\n}\nheader .search-bar:focus-within {\n  width: 600px;\n}\nheader .search-bar #search-field {\n  flex: 1 1 0;\n  width: 0;\n  border: none;\n  outline: none;\n  font-size: 1.2rem;\n  color: var(--header-icon-color);\n  caret-color: black;\n  background-color: transparent;\n}\n\n@media (min-width: 1200px) {\n  header {\n    gap: 15px;\n  }\n}\n#menu {\n  position: fixed;\n  box-sizing: border-box;\n  width: var(--menu-size);\n  height: calc(100vh - var(--header-size));\n  padding-top: 50px;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 60px;\n  background-color: var(--menu-bgc);\n  overflow: hidden;\n  z-index: 500;\n}\n#menu.hidden {\n  animation: hide-menu-to-left var(--menu-snap-time) cubic-bezier(0.4, 0, 0.2, 1) forwards;\n}\n#menu:not(.hidden) {\n  animation: show-menu var(--menu-snap-time) cubic-bezier(0.4, 0, 0.2, 1) forwards;\n}\n#menu .icon {\n  height: 25px;\n}\n#menu .icon.plus-icon {\n  filter: invert(100%);\n}\n#menu .tasks-sections,\n#menu .projects-sections {\n  width: 90%;\n}\n#menu .tasks-sections,\n#menu .projects-sections,\n#menu .projects-sections .projects {\n  display: flex;\n  flex-direction: column;\n  gap: 0;\n}\n#menu .task-section,\n#menu .project-section,\n#menu .add-project {\n  box-sizing: border-box;\n  width: 100%;\n  height: 50px;\n  border-radius: 6px;\n  padding-left: 10px;\n  padding-right: 10px;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 12px;\n  font-weight: 600;\n  cursor: pointer;\n}\n#menu .task-section:hover, #menu .task-section.selected,\n#menu .project-section:hover,\n#menu .project-section.selected,\n#menu .add-project:hover,\n#menu .add-project.selected {\n  background-color: rgba(0, 0, 0, 0.05);\n}\n#menu .task-section .title,\n#menu .project-section .title,\n#menu .add-project .title {\n  margin-right: auto;\n}\n#menu .task-section .number-of-tasks,\n#menu .project-section .number-of-tasks,\n#menu .add-project .number-of-tasks {\n  opacity: 0.4;\n  font-weight: normal;\n  margin-right: 4px;\n}\n#menu .project-section .delete-icon {\n  display: none;\n}\n#menu .project-section:hover .number-of-tasks {\n  display: none;\n}\n#menu .project-section:hover .delete-icon {\n  display: block;\n}\n#menu .project-section:hover .delete-icon:hover {\n  filter: brightness(0) saturate(100%);\n}\n#menu .projects-title {\n  font-size: 1.5rem;\n  font-weight: bold;\n  margin-bottom: 10px;\n}\n#menu .add-project.adding {\n  display: none;\n}\n#menu .add-project.adding + .project-form {\n  display: block;\n}\n#menu .project-form {\n  position: relative;\n  display: none;\n  box-sizing: border-box;\n  width: 100%;\n  height: 90px;\n  border-radius: 6px;\n  padding: 10px;\n  padding-top: 10px;\n  margin-top: 10px;\n  background-color: #ded7d9;\n}\n#menu .project-form input {\n  padding: none;\n  border: none;\n  outline: none;\n  background-color: transparent;\n  color: #171717;\n  font-size: 1.3rem;\n}\n#menu .project-form input::placeholder {\n  color: #5a5a5a;\n}\n#menu .project-form .submit-buttons {\n  position: absolute;\n  right: 20px;\n  bottom: 10px;\n  display: flex;\n  flex-direction: row;\n  gap: 15px;\n  height: 35px;\n}\n#menu .project-form .submit-buttons button {\n  padding-left: 12px;\n  padding-right: 12px;\n  font-size: 1.3rem;\n  font-weight: bold;\n  border: none;\n  border-radius: 7.5px;\n  cursor: pointer;\n}\n#menu .project-form .submit-buttons .cancel {\n  background-color: #cdcdcd;\n}\n#menu .project-form .submit-buttons .cancel:hover {\n  background-color: #bababa;\n}\n#menu .project-form .submit-buttons .cancel:active {\n  background-color: #b0aeae;\n}\n#menu .project-form .submit-buttons .submit {\n  background-color: #ca5b63;\n  color: white;\n}\n#menu .project-form .submit-buttons .submit:hover {\n  background-color: #ae4a51;\n}\n#menu .project-form .submit-buttons .submit:active {\n  background-color: #a93a42;\n}\n#menu .project-form:invalid .submit-buttons .submit {\n  background-color: rgba(202, 91, 98, 0.6549019608);\n  cursor: not-allowed;\n}\n\nmain#content {\n  box-sizing: border-box;\n  width: calc(100vw - var(--menu-size));\n  height: calc(100vh - var(--header-size));\n  padding-top: 50px;\n  padding-left: 10vw;\n  padding-right: 10vw;\n  margin-left: var(--menu-size);\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n  transition: all var(--menu-snap-time);\n  overflow: scroll;\n  z-index: 200;\n}\nmain#content .content-title {\n  font-size: 2rem;\n  font-weight: bold;\n  font-family: CodeNextRegular, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n}\n\n#menu.hidden + main#content {\n  padding-left: 20vw;\n  padding-right: 20vw;\n}\n\n.tasks {\n  width: 100%;\n  height: 100%;\n}\n.tasks .task-card {\n  /* #region  priority based checkmark coloring */\n  /* #endregion */\n  position: relative;\n  width: 100%;\n  padding-top: 20px;\n  padding-bottom: 20px;\n  border-bottom: 1px solid rgb(213, 213, 213);\n  display: flex;\n  flex-direction: row;\n  gap: 20px;\n  transition: all 0.1s ease-out;\n}\n.tasks .task-card.p1 {\n  --checkbox-color: #a93d44;\n  --checkbox-bgc: #d8bdc2;\n  --checkbox-light-bgc: #e1d5d8;\n  --check-color-filter: invert(25%) sepia(67%) saturate(1617%)\n    hue-rotate(327deg) brightness(91%) contrast(81%);\n}\n.tasks .task-card.p2 {\n  --checkbox-color: #fb8909;\n  --checkbox-bgc: #e9ddcd;\n  --checkbox-light-bgc: #eae4dd;\n  --check-color-filter: invert(71%) sepia(47%) saturate(7495%)\n    hue-rotate(10deg) brightness(106%) contrast(93%);\n}\n.tasks .task-card.p3 {\n  --checkbox-color: #246fe0;\n  --checkbox-bgc: #c1d2ec;\n  --checkbox-light-bgc: #d2ddee;\n  --check-color-filter: invert(41%) sepia(56%) saturate(1480%)\n    hue-rotate(194deg) brightness(85%) contrast(108%);\n}\n.tasks .task-card.pn {\n  --checkbox-color: #9ba1a7;\n  --checkbox-bgc: #d8dbdf;\n  --checkbox-light-bgc: #e1e5e8;\n  --check-color-filter: invert(65%) sepia(12%) saturate(166%)\n    hue-rotate(169deg) brightness(96%) contrast(90%);\n}\n.tasks .task-card .icon {\n  display: none;\n  height: 30px;\n  padding: 2.5px;\n  border-radius: 5px;\n  cursor: pointer;\n}\n.tasks .task-card .icon:hover {\n  background-color: rgba(0, 0, 0, 0.075);\n  filter: brightness(0) saturate(100%) invert(20%) sepia(5%) saturate(1101%) hue-rotate(169deg) brightness(101%) contrast(94%);\n}\n.tasks .task-card:hover .icon {\n  display: block;\n}\n.tasks .task-card .icons {\n  position: absolute;\n  display: flex;\n  flex-direction: row;\n  gap: 0;\n  right: 0;\n  top: 20px;\n}\n.tasks .task-card .checkbox {\n  position: relative;\n  flex-shrink: 0;\n  display: block;\n  box-sizing: border-box;\n  width: 25px;\n  height: 25px;\n  margin-top: 5px;\n  border-radius: 1000px;\n  border: 2px solid var(--checkbox-color);\n  background-color: var(--checkbox-light-bgc);\n  cursor: pointer;\n  transition: all 0.1s ease-out;\n}\n.tasks .task-card .checkbox input {\n  appearance: none;\n  -webkit-appearance: none;\n  height: 0;\n  width: 0;\n}\n.tasks .task-card .checkbox .check {\n  position: absolute;\n  width: 80%;\n  height: 80%;\n  left: 50%;\n  top: 50%;\n  transform: translate(-50%, -50%);\n  filter: var(--check-color-filter);\n  opacity: 0;\n  transition: opacity 0.1s ease-out;\n}\n.tasks .task-card .checkbox:hover {\n  background-color: var(--checkbox-bgc);\n}\n.tasks .task-card .checkbox:hover .check {\n  opacity: 1;\n}\n.tasks .task-card .data {\n  max-width: calc(100% - 120px);\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n.tasks .task-card .data .title {\n  font-size: 1.5rem;\n  letter-spacing: 0.5px;\n  font-weight: bold;\n}\n.tasks .task-card .data .description {\n  flex: 0 0 auto;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  font-size: 1.2rem;\n  width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  color: #636262;\n}\n.tasks .task-card .data .due-date {\n  margin-top: 5px;\n  font-size: 1.3rem;\n  letter-spacing: 2px;\n}\n.tasks .add-task {\n  padding-top: 20px;\n  padding-bottom: 20px;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 20px;\n  font-size: 1.2rem;\n  color: #636262;\n  cursor: pointer;\n}\n.tasks .add-task .add-circle {\n  position: relative;\n  border-radius: 50%;\n  width: 25px;\n  height: 25px;\n}\n.tasks .add-task img.icon {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  transform: translate(-50%, -50%);\n  height: 80%;\n  width: 80%;\n  filter: brightness(0) saturate(100%) invert(25%) sepia(67%) saturate(1617%) hue-rotate(327deg) brightness(91%) contrast(81%);\n}\n.tasks .add-task:hover {\n  color: #cc2530;\n}\n.tasks .add-task:hover .add-circle {\n  background-color: #cd3e47;\n}\n.tasks .add-task:hover img.icon {\n  filter: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(20deg) brightness(103%) contrast(101%);\n}\n\n#menu.hidden + main#content {\n  margin-left: 0;\n  width: 100vw;\n}\n\n@media (max-width: 800px) {\n  main#content {\n    margin-left: 0;\n    gap: 10px;\n  }\n  #menu:not(.hidden) + main#content {\n    background-color: rgba(0, 0, 0, 0.5);\n    width: 100vw;\n  }\n  #menu:not(.hidden) + main#content .tasks .task-card {\n    border-color: #5e5f63;\n  }\n  #menu.hidden + main#content {\n    padding-left: 10vw;\n    padding-right: 2vw;\n  }\n  .tasks .task-card {\n    padding-bottom: 10px;\n  }\n  .tasks .task-card .data {\n    gap: 7px;\n  }\n  .tasks .task-card .data .title {\n    font-size: 1.1rem;\n  }\n  .tasks .task-card .data .description {\n    font-size: 0.9rem;\n  }\n  .tasks .task-card .data .due-date {\n    font-size: 1rem;\n    margin-top: 10px;\n    letter-spacing: 1px;\n  }\n}\n.task-popup-container {\n  display: none;\n  justify-content: center;\n  align-items: start;\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100vw;\n  height: 100vh;\n  z-index: 700;\n}\n.task-popup-container.visible {\n  display: flex;\n}\n.task-popup-container.visible .task-popup {\n  animation: show-popup var(--task-popup-snap-time) ease-out forwards;\n}\n.task-popup-container:not(.visible) .task-popup {\n  animation: hide-popup var(--task-popup-snap-time) ease-in forwards;\n}\n\n.task-popup {\n  box-sizing: border-box;\n  margin-top: 200px;\n  border-radius: 20px;\n  background-color: #fff;\n  box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 48px;\n}\n.task-popup .data {\n  display: flex;\n  flex-direction: column;\n  gap: 15px;\n  padding: 25px;\n  border-bottom: 1px solid #cecccc;\n}\n.task-popup .data .title {\n  font-size: 1.6rem;\n  font-weight: 600;\n}\n.task-popup .data .description {\n  width: 100%;\n  max-height: min(500px, 100vh - 470px);\n  font-size: 1.05rem;\n  overflow-x: hidden;\n  overflow-y: scroll;\n  resize: none;\n  margin-bottom: 15px;\n}\n.task-popup .data .title,\n.task-popup .data .description {\n  padding: none;\n  border: none;\n  outline: none;\n  color: #171717;\n}\n.task-popup .data .title::placeholder,\n.task-popup .data .description::placeholder {\n  color: #6f6f6f;\n}\n.task-popup .extra-fields {\n  height: 30px;\n  display: flex;\n  flex-direction: row;\n  gap: 15px;\n  color: #6f6f6f;\n}\n.task-popup .extra-fields .flag-icon {\n  width: 22px;\n  height: 22px;\n  filter: var(--color-filter);\n}\n.task-popup .extra-fields .dropdown-flag-icon {\n  width: 30px;\n  height: 30px;\n}\n.task-popup .extra-fields .date-picker {\n  border-radius: 5px;\n  border: 1px solid #c1c1c1;\n  outline: none;\n  color: #636363;\n  font-size: 0.9rem;\n}\n.task-popup .extra-fields .priority-select {\n  --color-filter: invert(52%) sepia(1%) saturate(0%) hue-rotate(278deg)\n    brightness(93%) contrast(85%);\n  position: relative;\n}\n.task-popup .extra-fields .priority-button {\n  box-sizing: border-box;\n  height: 100%;\n  width: 100%;\n  padding-left: 8px;\n  padding-right: 8px;\n  border-radius: 5px;\n  border: 1px solid #c1c1c1;\n  display: flex;\n  flex-direction: row;\n  gap: 5px;\n  align-items: center;\n  font-size: 0.9rem;\n  font-weight: 600;\n}\n.task-popup .extra-fields .date-picker,\n.task-popup .extra-fields .priority-button {\n  cursor: pointer;\n}\n.task-popup .extra-fields .date-picker:hover,\n.task-popup .extra-fields .priority-button:hover {\n  background-color: #ededed;\n}\n.task-popup .extra-fields .priority-dropdown {\n  display: none;\n  overflow: hidden;\n  position: absolute;\n  left: 0;\n  bottom: 0;\n  transform: translate(-25%, 100%);\n  z-index: 701;\n}\n.task-popup .extra-fields .priority-dropdown.visible {\n  width: 200px;\n  border: 1px solid #cecccc;\n  border-radius: 7.5px;\n  display: flex;\n  flex-direction: column;\n  background-color: #fff;\n}\n.task-popup .extra-fields .priority-dropdown .dropdown-option {\n  box-sizing: border-box;\n  height: 50px;\n  padding: 15px;\n  display: flex;\n  flex-direction: row;\n  gap: 10px;\n  font-size: 1.1rem;\n  font-weight: bold;\n  color: black;\n  cursor: pointer;\n}\n.task-popup .extra-fields .priority-dropdown .dropdown-option:hover {\n  background-color: #e2e2e2;\n}\n.task-popup .extra-fields .priority-dropdown .dropdown-option img.icon {\n  filter: var(--color-filter);\n}\n.task-popup .bottom-ribbon {\n  height: 100px;\n  padding-left: 20px;\n  padding-right: 20px;\n  display: flex;\n  flex-direction: row;\n  justify-content: space-between;\n  align-items: center;\n  gap: 10px;\n}\n.task-popup .bottom-ribbon .project-select {\n  position: relative;\n}\n.task-popup .bottom-ribbon .project-button {\n  padding: 10px;\n  border: none;\n  background-color: transparent;\n  border-radius: 7.5px;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 5px;\n  color: #777777;\n  font-size: 1.1rem;\n  font-weight: bold;\n  cursor: pointer;\n}\n.task-popup .bottom-ribbon .project-button img,\n.task-popup .bottom-ribbon .project-button svg {\n  height: 20px;\n}\n.task-popup .bottom-ribbon .project-button:hover {\n  color: black;\n  background-color: #e2e2e2;\n}\n.task-popup .bottom-ribbon .project-button:active {\n  background-color: #d6d6d6;\n}\n.task-popup .bottom-ribbon .project-dropdown {\n  display: none;\n  overflow: scroll;\n  position: absolute;\n  left: 0;\n  bottom: 0;\n  transform: translate(-22.5%, 100%);\n  max-height: 210px;\n  z-index: 701;\n}\n.task-popup .bottom-ribbon .project-dropdown.visible {\n  width: 200px;\n  border: 1px solid #cecccc;\n  border-radius: 7.5px;\n  display: flex;\n  flex-direction: column;\n  background-color: #fff;\n}\n.task-popup .bottom-ribbon .project-dropdown .dropdown-option {\n  box-sizing: border-box;\n  height: 50px;\n  padding: 15px;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 10px;\n  font-size: 1.1rem;\n  font-weight: bold;\n  color: black;\n  cursor: pointer;\n}\n.task-popup .bottom-ribbon .project-dropdown .dropdown-option:hover {\n  background-color: #e2e2e2;\n}\n.task-popup .bottom-ribbon .project-dropdown .dropdown-option .text {\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n.task-popup .bottom-ribbon .project-dropdown .dropdown-option img {\n  filter: var(--color-filter);\n  height: 25px;\n  width: 25px;\n}\n.task-popup .bottom-ribbon .submition-buttons {\n  display: flex;\n  flex-direction: row;\n  gap: 20px;\n  height: 50px;\n}\n.task-popup .bottom-ribbon .submition-buttons button {\n  padding-left: 15px;\n  padding-right: 15px;\n  font-size: 1.3rem;\n  font-weight: bold;\n  border: none;\n  border-radius: 7.5px;\n  cursor: pointer;\n}\n.task-popup .bottom-ribbon .submition-buttons .cancel {\n  background-color: #e2e2e2;\n}\n.task-popup .bottom-ribbon .submition-buttons .cancel:hover {\n  background-color: #d6d6d6;\n}\n.task-popup .bottom-ribbon .submition-buttons .cancel:active {\n  background-color: #c1c1c1;\n}\n.task-popup .bottom-ribbon .submition-buttons .submit {\n  background-color: #c5444c;\n  color: white;\n}\n.task-popup .bottom-ribbon .submition-buttons .submit:hover {\n  background-color: #a93d44;\n}\n.task-popup .bottom-ribbon .submition-buttons .submit:active {\n  background-color: #a1363d;\n}\n\n.task-popup:invalid .bottom-ribbon .submition-buttons .submit {\n  background-color: rgba(197, 68, 77, 0.6431372549);\n  cursor: not-allowed;\n}\n\n.p1 {\n  --color-filter: invert(32%) sepia(38%) saturate(1159%) hue-rotate(309deg)\n    brightness(92%) contrast(93%);\n}\n\n.p2 {\n  --color-filter: invert(52%) sepia(61%) saturate(1255%) hue-rotate(357deg)\n    brightness(101%) contrast(97%);\n}\n\n.p3 {\n  --color-filter: invert(40%) sepia(13%) saturate(5038%) hue-rotate(188deg)\n    brightness(94%) contrast(106%);\n}\n\n.pn {\n  --color-filter: invert(52%) sepia(1%) saturate(0%) hue-rotate(278deg)\n    brightness(93%) contrast(85%);\n}\n\n@media (max-width: 500px) {\n  .task-popup .bottom-ribbon {\n    padding-left: 15px;\n    padding-right: 15px;\n  }\n  .task-popup .bottom-ribbon .project-button {\n    box-sizing: border-box;\n    height: 50px;\n    padding: 8px;\n    gap: 5px;\n  }\n  .task-popup .bottom-ribbon .project-button .text {\n    max-width: 6ch;\n    overflow: hidden;\n  }\n  .task-popup .bottom-ribbon .project-dropdown {\n    transform: translate(-15%, 100%);\n  }\n  .task-popup .bottom-ribbon .submition-buttons {\n    gap: 10px;\n  }\n  .task-popup .bottom-ribbon .submition-buttons button {\n    padding-left: 10px;\n    padding-right: 10px;\n    font-size: 1rem;\n  }\n}\nhtml,\nbody {\n  padding: 0;\n  margin: 0;\n}\n\nbody {\n  font-family: CodeNextBook, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n  background-color: var(--main-bgc);\n}\n\ninput,\ntextarea {\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n}", "",{"version":3,"sources":["webpack://./src/styles/abstracts/assets.scss","webpack://./src/styles/content/style.scss","webpack://./src/styles/abstracts/custom-properties.scss","webpack://./src/styles/content/loading-screen.scss","webpack://./src/styles/content/header.scss","webpack://./src/styles/content/menu.scss","webpack://./src/styles/content/content.scss","webpack://./src/styles/content/task-popup.scss"],"names":[],"mappings":"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","sourcesContent":["@font-face {\n  font-family: CodeNextBook;\n  src: url(../../assets/fonts/CodeNextBook.ttf);\n}\n@font-face {\n  font-family: CodeNextRegular;\n  src: url(../../assets/fonts/CodeNextRegular.ttf);\n}\n@keyframes load-logo {\n  0% {\n    width: 0px;\n  }\n  50% {\n    width: calc(0.405 * var(--logo-size));\n  }\n  54% {\n    width: calc(0.405 * var(--logo-size));\n  }\n  100% {\n    width: var(--logo-size);\n  }\n}\n@keyframes fade-in {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n@keyframes fade-out {\n  from {\n    opacity: 1;\n  }\n  to {\n    opacity: 0;\n  }\n}\n@keyframes hide-menu-to-left {\n  0% {\n    transform: translate(0);\n    width: var(--menu-size);\n  }\n  99% {\n    transform: translate(-100%, 0);\n    width: var(--menu-size);\n  }\n  100% {\n    width: 0px;\n  }\n}\n@keyframes show-menu {\n  0% {\n    transform: translate(-100%, 0);\n    width: var(--menu-size);\n  }\n  100% {\n    transform: translate(0);\n    width: var(--menu-size);\n  }\n}\n@keyframes show-popup {\n  0% {\n    transform: translate(0, 100px);\n    opacity: 0;\n    width: calc(var(--task-popup-width) * 0.9);\n  }\n  100% {\n    transform: translate(0, 0);\n    opacity: 1;\n    width: var(--task-popup-width);\n  }\n}\n@keyframes hide-popup {\n  0% {\n    transform: translate(0, 0);\n    opacity: 1;\n    width: var(--task-popup-width);\n  }\n  100% {\n    transform: translate(0, 50px);\n    opacity: 0;\n    width: calc(var(--task-popup-width) * 0.9);\n  }\n}\n","@use \"../abstracts\";\n@use \"./loading-screen.scss\";\n@use \"./header.scss\";\n@use \"./menu.scss\";\n@use \"./content.scss\";\n@use \"./task-popup.scss\";\nhtml,\nbody {\n  padding: 0;\n  margin: 0;\n}\nbody {\n  font-family: CodeNextBook, system-ui, -apple-system, BlinkMacSystemFont,\n    \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\",\n    sans-serif;\n  background-color: var(--main-bgc);\n}\ninput,\ntextarea {\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto,\n    Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n}\n","body {\n  --loading-screen-hide-delay: 0.7s;\n  --logo-size: min(500px, 90vw);\n  --header-color: #a93d44;\n  --header-size: 60px;\n  --main-bgc: #e9ecef;\n  --header-icon-color: #fafbfb;\n  // the color for icons will be edited in the svg directly with fill\n  --menu-bgc: #eae2e5;\n  --menu-size: min(420px, 90vw);\n  --menu-snap-time: 0.2s;\n  --task-popup-width: min(800px, 90vw);\n  --task-popup-snap-time: 0.3s;\n}\n\n@media (max-height: 800px) {\n  body {\n    --logo-size: min(400px, 90vw);\n  }\n}\n@media (min-width: 1200px) {\n  body {\n    --menu-size: min(430px, 90vw);\n  }\n}\n","@use \"../abstracts\" as *;\n\n#loading-screen {\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  padding-top: 15vh;\n\n  padding-bottom: 10vh;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 40px;\n\n  animation: fade-out 0.5s ease 4s forwards;\n  background-color: var(--main-bgc);\n  z-index: 10000;\n  .logo-container {\n    height: var(--logo-size);\n    width: var(--logo-size);\n    .loading-logo {\n      height: var(--logo-size);\n      background-image: url(../../assets/images/check.svg);\n      background-size: var(--logo-size);\n      width: 0px;\n      animation: load-logo 0.5s forwards ease 0.5s;\n    }\n  }\n  .text {\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    gap: 10px;\n  }\n  h1 {\n    margin-bottom: 0;\n    margin-top: 10px;\n    font-size: 2.5rem;\n    letter-spacing: 2px;\n\n    opacity: 0;\n    animation: fade-in 0.5s forwards ease 1.5s;\n  }\n  p {\n    margin: 0;\n    font-size: min(1.4rem, 6vw);\n    letter-spacing: 0.5px;\n\n    opacity: 0;\n    animation: fade-in 0.5s forwards ease 2.5s;\n  }\n}\n\n@media (max-height: 800px) {\n  #loading-screen {\n    padding-top: 7vh;\n    gap: 60px;\n    .text {\n      gap: 20px;\n    }\n  }\n}\n@media (min-width: 800px) {\n  #loading-screen {\n    gap: 80px;\n    .text {\n      gap: 30px;\n    }\n  }\n}\n","@use \"../abstracts\" as *;\nheader {\n  position: sticky;\n  box-sizing: border-box;\n  height: var(--header-size);\n  width: 100vw;\n  padding-left: 20px;\n  padding-right: 20px;\n  background-color: var(--header-color);\n\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 10px;\n\n  & > * {\n    flex: 0 0 auto;\n  }\n\n  .icon {\n    box-sizing: border-box;\n    height: 40px;\n    border-radius: 7px;\n    cursor: pointer;\n    &:hover {\n      background-color: rgba(256, 256, 256, 0.1);\n    }\n  }\n  .add-icon {\n    padding: 5px;\n  }\n  .search-bar {\n    flex: 0 1 auto;\n    height: 40px;\n    width: 300px;\n    margin-right: auto;\n    border-radius: 7px;\n    display: flex;\n    flex-direction: row;\n    gap: 5px;\n    background-color: rgba(256, 256, 256, 0.1);\n    transition: all 0.15s;\n    cursor: pointer;\n    &:hover,\n    &:focus-within {\n      background-color: #fffafa;\n      .icon {\n        filter: invert(100%);\n        background-color: transparent;\n      }\n      #search-field {\n        color: rgb(22, 21, 21);\n      }\n    }\n    &:focus-within {\n      width: 600px;\n    }\n    #search-field {\n      flex: 1 1 0;\n      width: 0;\n      border: none;\n      outline: none;\n      font-size: 1.2rem;\n      color: var(--header-icon-color);\n      caret-color: black;\n      background-color: transparent;\n    }\n  }\n}\n\n@media (min-width: 1200px) {\n  header {\n    gap: 15px;\n  }\n}\n","@use \"../abstracts\" as *;\n#menu {\n  position: fixed;\n  box-sizing: border-box;\n  width: var(--menu-size);\n  height: calc(100vh - var(--header-size));\n  padding-top: 50px;\n\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 60px;\n\n  background-color: var(--menu-bgc);\n  overflow: hidden;\n  z-index: 500;\n\n  &.hidden {\n    animation: hide-menu-to-left var(--menu-snap-time)\n      cubic-bezier(0.4, 0, 0.2, 1) forwards;\n  }\n  &:not(.hidden) {\n    animation: show-menu var(--menu-snap-time) cubic-bezier(0.4, 0, 0.2, 1)\n      forwards;\n  }\n\n  .icon {\n    height: 25px;\n\n    &.plus-icon {\n      filter: invert(100%);\n    }\n  }\n  .tasks-sections,\n  .projects-sections {\n    width: 90%;\n  }\n  .tasks-sections,\n  .projects-sections,\n  .projects-sections .projects {\n    display: flex;\n    flex-direction: column;\n    gap: 0;\n  }\n  .task-section,\n  .project-section,\n  .add-project {\n    box-sizing: border-box;\n    width: 100%;\n    height: 50px;\n    border-radius: 6px;\n    padding-left: 10px;\n    padding-right: 10px;\n\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n    gap: 12px;\n\n    font-weight: 600;\n    cursor: pointer;\n\n    &:hover,\n    &.selected {\n      background-color: rgba($color: black, $alpha: 0.05);\n    }\n    .title {\n      margin-right: auto;\n    }\n    .number-of-tasks {\n      opacity: 0.4;\n      font-weight: normal;\n      margin-right: 4px;\n    }\n  }\n  .project-section {\n    .delete-icon {\n      display: none;\n    }\n    &:hover {\n      .number-of-tasks {\n        display: none;\n      }\n      .delete-icon {\n        display: block;\n        &:hover {\n          filter: brightness(0) saturate(100%);\n        }\n      }\n    }\n  }\n  .projects-title {\n    font-size: 1.5rem;\n    font-weight: bold;\n    margin-bottom: 10px;\n  }\n  .add-project.adding {\n    display: none;\n    + .project-form {\n      display: block;\n    }\n  }\n  .project-form {\n    position: relative;\n    display: none;\n    box-sizing: border-box;\n    width: 100%;\n    height: 90px;\n    border-radius: 6px;\n    padding: 10px;\n    padding-top: 10px;\n    margin-top: 10px;\n    background-color: #ded7d9;\n    input {\n      padding: none;\n      border: none;\n      outline: none;\n      background-color: transparent;\n      color: #171717;\n      font-size: 1.3rem;\n      &::placeholder {\n        color: #5a5a5a;\n      }\n    }\n    .submit-buttons {\n      position: absolute;\n      right: 20px;\n      bottom: 10px;\n      display: flex;\n      flex-direction: row;\n      gap: 15px;\n      height: 35px;\n      button {\n        padding-left: 12px;\n        padding-right: 12px;\n        font-size: 1.3rem;\n        font-weight: bold;\n        border: none;\n        border-radius: 7.5px;\n        cursor: pointer;\n      }\n      .cancel {\n        background-color: #cdcdcd;\n        &:hover {\n          background-color: #bababa;\n        }\n        &:active {\n          background-color: #b0aeae;\n        }\n      }\n      .submit {\n        background-color: #ca5b63;\n        color: white;\n        &:hover {\n          background-color: #ae4a51;\n        }\n        &:active {\n          background-color: #a93a42;\n        }\n      }\n    }\n    &:invalid .submit-buttons .submit {\n      background-color: #ca5b62a7;\n      cursor: not-allowed;\n    }\n  }\n}\n","@use \"../abstracts\" as *;\nmain#content {\n  box-sizing: border-box;\n  width: calc(100vw - var(--menu-size));\n  height: calc(100vh - var(--header-size));\n  padding-top: 50px;\n  padding-left: 10vw;\n  padding-right: 10vw;\n  margin-left: var(--menu-size);\n\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n\n  transition: all var(--menu-snap-time);\n  overflow: scroll;\n  z-index: 200;\n  .content-title {\n    font-size: 2rem;\n    font-weight: bold;\n    font-family: CodeNextRegular, system-ui, -apple-system, BlinkMacSystemFont,\n      \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\",\n      \"Helvetica Neue\", sans-serif;\n  }\n}\n\n#menu.hidden + main#content {\n  padding-left: 20vw;\n  padding-right: 20vw;\n}\n\n.tasks {\n  width: 100%;\n  height: 100%;\n  .task-card {\n    /* #region  priority based checkmark coloring */\n    &.p1 {\n      --checkbox-color: #a93d44;\n      --checkbox-bgc: #d8bdc2;\n      --checkbox-light-bgc: #e1d5d8;\n      --check-color-filter: invert(25%) sepia(67%) saturate(1617%)\n        hue-rotate(327deg) brightness(91%) contrast(81%);\n    }\n    &.p2 {\n      --checkbox-color: #fb8909;\n      --checkbox-bgc: #e9ddcd;\n      --checkbox-light-bgc: #eae4dd;\n      --check-color-filter: invert(71%) sepia(47%) saturate(7495%)\n        hue-rotate(10deg) brightness(106%) contrast(93%);\n    }\n    &.p3 {\n      --checkbox-color: #246fe0;\n      --checkbox-bgc: #c1d2ec;\n      --checkbox-light-bgc: #d2ddee;\n      --check-color-filter: invert(41%) sepia(56%) saturate(1480%)\n        hue-rotate(194deg) brightness(85%) contrast(108%);\n    }\n    &.pn {\n      --checkbox-color: #9ba1a7;\n      --checkbox-bgc: #d8dbdf;\n      --checkbox-light-bgc: #e1e5e8;\n      --check-color-filter: invert(65%) sepia(12%) saturate(166%)\n        hue-rotate(169deg) brightness(96%) contrast(90%);\n    }\n    /* #endregion */\n    position: relative;\n    width: 100%;\n    padding-top: 20px;\n    padding-bottom: 20px;\n    border-bottom: 1px solid rgb(213, 213, 213);\n    display: flex;\n    flex-direction: row;\n    gap: 20px;\n    transition: all 0.1s ease-out;\n    .icon {\n      display: none;\n      height: 30px;\n      padding: 2.5px;\n      border-radius: 5px;\n      cursor: pointer;\n\n      &:hover {\n        background-color: rgba($color: #000000, $alpha: 0.075);\n        filter: brightness(0) saturate(100%) invert(20%) sepia(5%)\n          saturate(1101%) hue-rotate(169deg) brightness(101%) contrast(94%);\n      }\n    }\n    &:hover .icon {\n      display: block;\n    }\n    .icons {\n      position: absolute;\n      display: flex;\n      flex-direction: row;\n      gap: 0;\n      right: 0;\n      top: 20px;\n    }\n    .checkbox {\n      position: relative;\n      flex-shrink: 0;\n      display: block;\n      box-sizing: border-box;\n      width: 25px;\n      height: 25px;\n      margin-top: 5px;\n      border-radius: 1000px;\n      border: 2px solid var(--checkbox-color);\n      background-color: var(--checkbox-light-bgc);\n      cursor: pointer;\n      transition: all 0.1s ease-out;\n      input {\n        appearance: none;\n        -webkit-appearance: none;\n        height: 0;\n        width: 0;\n      }\n      .check {\n        position: absolute;\n        width: 80%;\n        height: 80%;\n        left: 50%;\n        top: 50%;\n        transform: translate(-50%, -50%);\n        filter: var(--check-color-filter);\n        opacity: 0;\n        transition: opacity 0.1s ease-out;\n      }\n      &:hover {\n        background-color: var(--checkbox-bgc);\n        .check {\n          opacity: 1;\n        }\n      }\n    }\n    .data {\n      max-width: calc(100% - 120px);\n      display: flex;\n      flex-direction: column;\n      gap: 10px;\n      .title {\n        font-size: 1.5rem;\n        letter-spacing: 0.5px;\n        font-weight: bold;\n      }\n      .description {\n        flex: 0 0 auto;\n        display: -webkit-box;\n        -webkit-line-clamp: 2;\n        -webkit-box-orient: vertical;\n        font-size: 1.2rem;\n        width: 100%;\n        overflow: hidden;\n        text-overflow: ellipsis;\n        color: #636262;\n      }\n      .due-date {\n        margin-top: 5px;\n        font-size: 1.3rem;\n        letter-spacing: 2px;\n      }\n    }\n  }\n  .add-task {\n    padding-top: 20px;\n    padding-bottom: 20px;\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n    gap: 20px;\n\n    font-size: 1.2rem;\n    color: #636262;\n    cursor: pointer;\n    .add-circle {\n      position: relative;\n      border-radius: 50%;\n      width: 25px;\n      height: 25px;\n    }\n    img.icon {\n      position: absolute;\n      left: 50%;\n      top: 50%;\n      transform: translate(-50%, -50%);\n      height: 80%;\n      width: 80%;\n      filter: brightness(0) saturate(100%) invert(25%) sepia(67%)\n        saturate(1617%) hue-rotate(327deg) brightness(91%) contrast(81%);\n    }\n    &:hover {\n      color: #cc2530;\n      .add-circle {\n        background-color: #cd3e47;\n      }\n      img.icon {\n        filter: brightness(0) saturate(100%) invert(100%) sepia(100%)\n          saturate(0%) hue-rotate(20deg) brightness(103%) contrast(101%);\n      }\n    }\n  }\n}\n\n#menu.hidden + main#content {\n  margin-left: 0;\n  width: 100vw;\n}\n\n@media (max-width: 800px) {\n  main#content {\n    margin-left: 0;\n    gap: 10px;\n  }\n  #menu:not(.hidden) + main#content {\n    background-color: rgba(black, 0.5);\n    width: 100vw;\n    .tasks .task-card {\n      border-color: #5e5f63;\n    }\n  }\n  #menu.hidden + main#content {\n    padding-left: 10vw;\n    padding-right: 2vw;\n  }\n  .tasks .task-card {\n    padding-bottom: 10px;\n    .data {\n      gap: 7px;\n      .title {\n        font-size: 1.1rem;\n      }\n      .description {\n        font-size: 0.9rem;\n      }\n      .due-date {\n        font-size: 1rem;\n        margin-top: 10px;\n        letter-spacing: 1px;\n      }\n    }\n  }\n}\n","@use \"../abstracts\" as *;\n.task-popup-container {\n  display: none;\n  justify-content: center;\n  align-items: start;\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100vw;\n  height: 100vh;\n  z-index: 700;\n  &.visible {\n    display: flex;\n    .task-popup {\n      animation: show-popup var(--task-popup-snap-time) ease-out forwards;\n    }\n  }\n  &:not(.visible) {\n    .task-popup {\n      animation: hide-popup var(--task-popup-snap-time) ease-in forwards;\n    }\n  }\n}\n.task-popup {\n  box-sizing: border-box;\n  margin-top: 200px;\n  border-radius: 20px;\n\n  background-color: #fff;\n  box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px,\n    rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 48px;\n\n  .data {\n    display: flex;\n    flex-direction: column;\n    gap: 15px;\n    padding: 25px;\n    border-bottom: 1px solid #cecccc;\n    .title {\n      font-size: 1.6rem;\n      font-weight: 600;\n    }\n    .description {\n      width: 100%;\n      max-height: min(500px, calc(100vh - 470px));\n      font-size: 1.05rem;\n      overflow-x: hidden;\n      overflow-y: scroll;\n      resize: none;\n      margin-bottom: 15px;\n    }\n    .title,\n    .description {\n      padding: none;\n      border: none;\n      outline: none;\n      color: #171717;\n      &::placeholder {\n        color: #6f6f6f;\n      }\n    }\n  }\n  .extra-fields {\n    height: 30px;\n    display: flex;\n    flex-direction: row;\n    gap: 15px;\n    color: #6f6f6f;\n    .flag-icon {\n      width: 22px;\n      height: 22px;\n      filter: var(--color-filter);\n    }\n    .dropdown-flag-icon {\n      width: 30px;\n      height: 30px;\n    }\n    .date-picker {\n      border-radius: 5px;\n      border: 1px solid #c1c1c1;\n      outline: none;\n      color: #636363;\n      font-size: 0.9rem;\n    }\n    .priority-select {\n      --color-filter: invert(52%) sepia(1%) saturate(0%) hue-rotate(278deg)\n        brightness(93%) contrast(85%);\n      position: relative;\n    }\n    .priority-button {\n      box-sizing: border-box;\n      height: 100%;\n      width: 100%;\n      padding-left: 8px;\n      padding-right: 8px;\n      border-radius: 5px;\n      border: 1px solid #c1c1c1;\n      display: flex;\n      flex-direction: row;\n      gap: 5px;\n      align-items: center;\n      font-size: 0.9rem;\n      font-weight: 600;\n    }\n    .date-picker,\n    .priority-button {\n      cursor: pointer;\n      &:hover {\n        background-color: #ededed;\n      }\n    }\n    .priority-dropdown {\n      display: none;\n      overflow: hidden;\n      position: absolute;\n      left: 0;\n      bottom: 0;\n      transform: translate(-25%, 100%);\n      z-index: 701;\n      &.visible {\n        width: 200px;\n        border: 1px solid #cecccc;\n        border-radius: 7.5px;\n        display: flex;\n        flex-direction: column;\n        background-color: #fff;\n      }\n      .dropdown-option {\n        box-sizing: border-box;\n        height: 50px;\n        padding: 15px;\n        display: flex;\n        flex-direction: row;\n        gap: 10px;\n\n        font-size: 1.1rem;\n        font-weight: bold;\n        color: black;\n        cursor: pointer;\n        &:hover {\n          background-color: #e2e2e2;\n        }\n        img.icon {\n          filter: var(--color-filter);\n        }\n      }\n    }\n  }\n  .bottom-ribbon {\n    height: 100px;\n    padding-left: 20px;\n    padding-right: 20px;\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n    align-items: center;\n    gap: 10px;\n    .project-select {\n      position: relative;\n    }\n    .project-button {\n      padding: 10px;\n      border: none;\n      background-color: transparent;\n      border-radius: 7.5px;\n      display: flex;\n      flex-direction: row;\n      align-items: center;\n      gap: 5px;\n      color: #777777;\n      font-size: 1.1rem;\n      font-weight: bold;\n      cursor: pointer;\n      img,\n      svg {\n        height: 20px;\n      }\n      &:hover {\n        color: black;\n        background-color: #e2e2e2;\n      }\n      &:active {\n        background-color: #d6d6d6;\n      }\n    }\n    .project-dropdown {\n      display: none;\n      overflow: scroll;\n      position: absolute;\n      left: 0;\n      bottom: 0;\n      transform: translate(-22.5%, 100%);\n      max-height: 210px;\n      z-index: 701;\n      &.visible {\n        width: 200px;\n        border: 1px solid #cecccc;\n        border-radius: 7.5px;\n        display: flex;\n        flex-direction: column;\n        background-color: #fff;\n      }\n      .dropdown-option {\n        box-sizing: border-box;\n        height: 50px;\n        padding: 15px;\n        display: flex;\n        flex-direction: row;\n        align-items: center;\n        gap: 10px;\n\n        font-size: 1.1rem;\n        font-weight: bold;\n        color: black;\n        cursor: pointer;\n        &:hover {\n          background-color: #e2e2e2;\n        }\n        .text {\n          overflow: hidden;\n          text-overflow: ellipsis;\n        }\n        img {\n          filter: var(--color-filter);\n          height: 25px;\n          width: 25px;\n        }\n      }\n    }\n    .submition-buttons {\n      display: flex;\n      flex-direction: row;\n      gap: 20px;\n      height: 50px;\n      button {\n        padding-left: 15px;\n        padding-right: 15px;\n        font-size: 1.3rem;\n        font-weight: bold;\n        border: none;\n        border-radius: 7.5px;\n        cursor: pointer;\n      }\n      .cancel {\n        background-color: #e2e2e2;\n        &:hover {\n          background-color: #d6d6d6;\n        }\n        &:active {\n          background-color: #c1c1c1;\n        }\n      }\n      .submit {\n        background-color: #c5444c;\n        color: white;\n        &:hover {\n          background-color: #a93d44;\n        }\n        &:active {\n          background-color: #a1363d;\n        }\n      }\n    }\n  }\n}\n.task-popup:invalid .bottom-ribbon .submition-buttons .submit {\n  background-color: #c5444da4;\n  cursor: not-allowed;\n}\n.p1 {\n  --color-filter: invert(32%) sepia(38%) saturate(1159%) hue-rotate(309deg)\n    brightness(92%) contrast(93%);\n}\n.p2 {\n  --color-filter: invert(52%) sepia(61%) saturate(1255%) hue-rotate(357deg)\n    brightness(101%) contrast(97%);\n}\n.p3 {\n  --color-filter: invert(40%) sepia(13%) saturate(5038%) hue-rotate(188deg)\n    brightness(94%) contrast(106%);\n}\n.pn {\n  --color-filter: invert(52%) sepia(1%) saturate(0%) hue-rotate(278deg)\n    brightness(93%) contrast(85%);\n}\n@media (max-width: 500px) {\n  .task-popup {\n    .bottom-ribbon {\n      padding-left: 15px;\n      padding-right: 15px;\n      .project-button {\n        box-sizing: border-box;\n        height: 50px;\n        padding: 8px;\n        gap: 5px;\n        .text {\n          max-width: 6ch;\n          overflow: hidden;\n        }\n      }\n      .project-dropdown {\n        transform: translate(-15%, 100%);\n      }\n      .submition-buttons {\n        gap: 10px;\n        button {\n          padding-left: 10px;\n          padding-right: 10px;\n          font-size: 1rem;\n        }\n      }\n    }\n  }\n}\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "@font-face {\n  font-family: MasivaRegular;\n  src: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n}\n@font-face {\n  font-family: MasivaMedium;\n  src: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + ");\n}\n@keyframes load-logo {\n  0% {\n    width: 0px;\n  }\n  50% {\n    width: calc(0.405 * var(--logo-size));\n  }\n  54% {\n    width: calc(0.405 * var(--logo-size));\n  }\n  100% {\n    width: var(--logo-size);\n  }\n}\n@keyframes fade-in {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n@keyframes fade-out {\n  from {\n    opacity: 1;\n  }\n  to {\n    opacity: 0;\n  }\n}\n@keyframes hide-menu-to-left {\n  0% {\n    transform: translate(0);\n    width: var(--menu-size);\n  }\n  99% {\n    transform: translate(-100%, 0);\n    width: var(--menu-size);\n  }\n  100% {\n    width: 0px;\n  }\n}\n@keyframes show-menu {\n  0% {\n    transform: translate(-100%, 0);\n    width: var(--menu-size);\n  }\n  100% {\n    transform: translate(0);\n    width: var(--menu-size);\n  }\n}\n@keyframes show-popup {\n  0% {\n    transform: translate(0, 100px);\n    opacity: 0;\n    width: calc(var(--task-popup-width) * 0.9);\n  }\n  100% {\n    transform: translate(0, 0);\n    opacity: 1;\n    width: var(--task-popup-width);\n  }\n}\n@keyframes hide-popup {\n  0% {\n    transform: translate(0, 0);\n    opacity: 1;\n    width: var(--task-popup-width);\n  }\n  100% {\n    transform: translate(0, 50px);\n    opacity: 0;\n    width: calc(var(--task-popup-width) * 0.9);\n  }\n}\nbody {\n  --loading-screen-hide-delay: 3.7s;\n  --logo-size: min(500px, 90vw);\n  --header-color: #a93d44;\n  --header-size: 60px;\n  --main-bgc: #e9ecef;\n  --header-icon-color: #fafbfb;\n  --menu-bgc: #eae2e5;\n  --menu-size: min(420px, 90vw);\n  --menu-snap-time: 0.2s;\n  --task-popup-width: min(800px, 90vw);\n  --task-popup-snap-time: 0.3s;\n}\n\n@media (max-height: 800px) {\n  body {\n    --logo-size: min(400px, 90vw);\n  }\n}\n@media (min-width: 1200px) {\n  body {\n    --menu-size: min(430px, 90vw);\n  }\n}\n#loading-screen {\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  padding-top: 15vh;\n  padding-bottom: 10vh;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 40px;\n  animation: fade-out 0.5s ease 4s forwards;\n  background-color: var(--main-bgc);\n  z-index: 10000;\n}\n#loading-screen .logo-container {\n  height: var(--logo-size);\n  width: var(--logo-size);\n}\n#loading-screen .logo-container .loading-logo {\n  height: var(--logo-size);\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_2___ + ");\n  background-size: var(--logo-size);\n  width: 0px;\n  animation: load-logo 0.5s forwards ease 0.5s;\n}\n#loading-screen .text {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 10px;\n}\n#loading-screen h1 {\n  margin-bottom: 0;\n  margin-top: 10px;\n  font-size: 2.5rem;\n  letter-spacing: 2px;\n  opacity: 0;\n  animation: fade-in 0.5s forwards ease 1.5s;\n}\n#loading-screen p {\n  margin: 0;\n  font-size: min(1.4rem, 6vw);\n  letter-spacing: 0.5px;\n  opacity: 0;\n  animation: fade-in 0.5s forwards ease 2.5s;\n}\n\n@media (max-height: 800px) {\n  #loading-screen {\n    padding-top: 7vh;\n    gap: 60px;\n  }\n  #loading-screen .text {\n    gap: 20px;\n  }\n}\n@media (min-width: 800px) {\n  #loading-screen {\n    gap: 80px;\n  }\n  #loading-screen .text {\n    gap: 30px;\n  }\n}\nheader {\n  position: sticky;\n  box-sizing: border-box;\n  height: var(--header-size);\n  width: 100vw;\n  padding-left: 20px;\n  padding-right: 20px;\n  background-color: var(--header-color);\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 10px;\n}\nheader > * {\n  flex: 0 0 auto;\n}\nheader .icon {\n  box-sizing: border-box;\n  height: 40px;\n  border-radius: 7px;\n  cursor: pointer;\n}\nheader .icon:hover {\n  background-color: rgba(255, 255, 255, 0.1);\n}\nheader .add-icon {\n  padding: 5px;\n}\nheader .search-bar {\n  flex: 0 1 auto;\n  height: 40px;\n  width: 300px;\n  margin-right: auto;\n  border-radius: 7px;\n  display: flex;\n  flex-direction: row;\n  gap: 5px;\n  background-color: rgba(255, 255, 255, 0.1);\n  transition: all 0.15s;\n  cursor: pointer;\n}\nheader .search-bar:hover, header .search-bar:focus-within {\n  background-color: #fffafa;\n}\nheader .search-bar:hover .icon, header .search-bar:focus-within .icon {\n  filter: invert(100%);\n  background-color: transparent;\n}\nheader .search-bar:hover #search-field, header .search-bar:focus-within #search-field {\n  color: #161515;\n}\nheader .search-bar:hover #search-field::-webkit-input-placeholder, header .search-bar:focus-within #search-field::-webkit-input-placeholder {\n  color: #807e7e;\n}\nheader .search-bar:hover #search-field::-ms-placeholder, header .search-bar:focus-within #search-field::-ms-placeholder {\n  color: #807e7e;\n}\nheader .search-bar:focus-within {\n  width: 600px;\n}\nheader .search-bar #search-field {\n  flex: 1 1 0;\n  width: 0;\n  border: none;\n  outline: none;\n  font-size: 1.2rem;\n  color: var(--header-icon-color);\n  caret-color: black;\n  background-color: transparent;\n}\nheader .search-bar #search-field::-webkit-input-placeholder {\n  color: #d9adb0;\n}\nheader .search-bar #search-field::-ms-placeholder {\n  color: #d9adb0;\n}\n\n@media (min-width: 1200px) {\n  header {\n    gap: 15px;\n  }\n}\n#menu {\n  position: fixed;\n  box-sizing: border-box;\n  width: var(--menu-size);\n  height: calc(100vh - var(--header-size));\n  padding-top: 50px;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 60px;\n  background-color: var(--menu-bgc);\n  overflow: hidden;\n  z-index: 500;\n}\n#menu.hidden {\n  animation: hide-menu-to-left var(--menu-snap-time) cubic-bezier(0.4, 0, 0.2, 1) forwards;\n}\n#menu:not(.hidden) {\n  animation: show-menu var(--menu-snap-time) cubic-bezier(0.4, 0, 0.2, 1) forwards;\n}\n#menu .icon {\n  height: 25px;\n}\n#menu .icon.plus-icon {\n  filter: invert(100%);\n}\n#menu .tasks-sections,\n#menu .projects-sections {\n  width: 90%;\n}\n#menu .tasks-sections,\n#menu .projects-sections,\n#menu .projects-sections .projects {\n  display: flex;\n  flex-direction: column;\n  gap: 0;\n}\n#menu .task-section,\n#menu .project-section,\n#menu .add-project {\n  box-sizing: border-box;\n  width: 100%;\n  height: 50px;\n  border-radius: 6px;\n  padding-left: 10px;\n  padding-right: 10px;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 12px;\n  font-size: 1rem;\n  font-weight: 600;\n  cursor: pointer;\n  background-color: transparent;\n  border: none;\n  font-family: MasivaRegular, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n}\n#menu .task-section:hover, #menu .task-section.selected,\n#menu .project-section:hover,\n#menu .project-section.selected,\n#menu .add-project:hover,\n#menu .add-project.selected {\n  background-color: rgba(0, 0, 0, 0.05);\n}\n#menu .task-section .title,\n#menu .project-section .title,\n#menu .add-project .title {\n  margin-right: auto;\n  max-width: 80%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n#menu .task-section .number-of-tasks,\n#menu .project-section .number-of-tasks,\n#menu .add-project .number-of-tasks {\n  opacity: 0.4;\n  font-weight: normal;\n  margin-right: 4px;\n}\n#menu .project-section .delete-icon {\n  display: none;\n}\n#menu .project-section:hover .number-of-tasks {\n  display: none;\n}\n#menu .project-section:hover .delete-icon {\n  display: block;\n}\n#menu .project-section:hover .delete-icon:hover {\n  filter: brightness(0) saturate(100%);\n}\n#menu .projects-title {\n  font-size: 1.5rem;\n  font-weight: bold;\n  margin-bottom: 10px;\n}\n#menu .add-project.adding {\n  display: none;\n}\n#menu .add-project.adding + .project-form {\n  display: block;\n}\n#menu .project-form {\n  position: relative;\n  display: none;\n  box-sizing: border-box;\n  width: 100%;\n  height: 90px;\n  border-radius: 6px;\n  padding: 10px;\n  padding-top: 10px;\n  margin-top: 10px;\n  background-color: #ded7d9;\n}\n#menu .project-form input {\n  padding: none;\n  border: none;\n  outline: none;\n  background-color: transparent;\n  color: #171717;\n  font-size: 1.3rem;\n}\n#menu .project-form input::placeholder {\n  color: #5a5a5a;\n}\n#menu .project-form .submit-buttons {\n  position: absolute;\n  right: 20px;\n  bottom: 10px;\n  display: flex;\n  flex-direction: row;\n  gap: 15px;\n  height: 35px;\n}\n#menu .project-form .submit-buttons button {\n  padding-left: 12px;\n  padding-right: 12px;\n  font-size: 1.3rem;\n  font-weight: bold;\n  border: none;\n  border-radius: 7.5px;\n  cursor: pointer;\n}\n#menu .project-form .submit-buttons .cancel {\n  background-color: #cdcdcd;\n}\n#menu .project-form .submit-buttons .cancel:hover {\n  background-color: #bababa;\n}\n#menu .project-form .submit-buttons .cancel:active {\n  background-color: #b0aeae;\n}\n#menu .project-form .submit-buttons .submit {\n  background-color: #ca5b63;\n  color: white;\n}\n#menu .project-form .submit-buttons .submit:hover {\n  background-color: #ae4a51;\n}\n#menu .project-form .submit-buttons .submit:active {\n  background-color: #a93a42;\n}\n#menu .project-form:invalid .submit-buttons .submit {\n  background-color: rgba(202, 91, 98, 0.6549019608);\n  cursor: not-allowed;\n}\n\n@media (max-width: 800px) {\n  #menu .project-section.selected .number-of-tasks {\n    display: none;\n  }\n  #menu .project-section.selected .delete-icon {\n    display: block;\n  }\n}\nmain#content {\n  box-sizing: border-box;\n  width: calc(100vw - var(--menu-size));\n  height: calc(100vh - var(--header-size));\n  padding-top: 50px;\n  padding-left: 10vw;\n  padding-right: 10vw;\n  margin-left: var(--menu-size);\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n  transition: all var(--menu-snap-time);\n  overflow-y: scroll;\n  z-index: 200;\n}\nmain#content .content-title {\n  font-size: 2rem;\n  font-weight: bold;\n  font-family: MasivaMedium, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n}\n\n#menu.hidden + main#content {\n  padding-left: 20vw;\n  padding-right: 20vw;\n}\n\n.tasks {\n  width: 100%;\n  height: 100%;\n}\n.tasks .task-card {\n  /* #region  priority based checkmark coloring */\n  /* #endregion */\n  position: relative;\n  width: 100%;\n  padding-top: 20px;\n  padding-bottom: 20px;\n  border-bottom: 1px solid rgb(213, 213, 213);\n  display: flex;\n  flex-direction: row;\n  gap: 20px;\n  transition: all 0.1s ease-out;\n}\n.tasks .task-card.p1 {\n  --checkbox-color: #a93d44;\n  --checkbox-bgc: #d8bdc2;\n  --checkbox-light-bgc: #e1d5d8;\n  --check-color-filter: invert(25%) sepia(67%) saturate(1617%)\n    hue-rotate(327deg) brightness(91%) contrast(81%);\n}\n.tasks .task-card.p2 {\n  --checkbox-color: #fb8909;\n  --checkbox-bgc: #e9ddcd;\n  --checkbox-light-bgc: #eae4dd;\n  --check-color-filter: invert(71%) sepia(47%) saturate(7495%)\n    hue-rotate(10deg) brightness(106%) contrast(93%);\n}\n.tasks .task-card.p3 {\n  --checkbox-color: #246fe0;\n  --checkbox-bgc: #c1d2ec;\n  --checkbox-light-bgc: #d2ddee;\n  --check-color-filter: invert(41%) sepia(56%) saturate(1480%)\n    hue-rotate(194deg) brightness(85%) contrast(108%);\n}\n.tasks .task-card.pn {\n  --checkbox-color: #9ba1a7;\n  --checkbox-bgc: #d8dbdf;\n  --checkbox-light-bgc: #e1e5e8;\n  --check-color-filter: invert(65%) sepia(12%) saturate(166%)\n    hue-rotate(169deg) brightness(96%) contrast(90%);\n}\n.tasks .task-card .icon {\n  display: none;\n  height: 30px;\n  padding: 2.5px;\n  border-radius: 5px;\n  cursor: pointer;\n}\n.tasks .task-card .icon:hover {\n  background-color: rgba(0, 0, 0, 0.075);\n  filter: brightness(0) saturate(100%) invert(20%) sepia(5%) saturate(1101%) hue-rotate(169deg) brightness(101%) contrast(94%);\n}\n.tasks .task-card:hover .icon {\n  display: block;\n}\n.tasks .task-card .icons {\n  position: absolute;\n  display: flex;\n  flex-direction: row;\n  gap: 0;\n  right: 0;\n  top: 20px;\n}\n.tasks .task-card .checkbox {\n  position: relative;\n  flex-shrink: 0;\n  display: block;\n  box-sizing: border-box;\n  width: 25px;\n  height: 25px;\n  margin-top: 5px;\n  border-radius: 1000px;\n  border: 2px solid var(--checkbox-color);\n  background-color: var(--checkbox-light-bgc);\n  cursor: pointer;\n  transition: all 0.1s ease-out;\n}\n.tasks .task-card .checkbox input {\n  appearance: none;\n  -webkit-appearance: none;\n  height: 0;\n  width: 0;\n}\n.tasks .task-card .checkbox .check {\n  position: absolute;\n  width: 80%;\n  height: 80%;\n  left: 50%;\n  top: 50%;\n  transform: translate(-50%, -50%);\n  filter: var(--check-color-filter);\n  opacity: 0;\n  transition: opacity 0.1s ease-out;\n}\n.tasks .task-card .checkbox:hover {\n  background-color: var(--checkbox-bgc);\n}\n.tasks .task-card .checkbox:hover .check {\n  opacity: 1;\n}\n.tasks .task-card .data {\n  max-width: calc(100% - 120px);\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n.tasks .task-card .data .title {\n  margin-top: 5px;\n  margin-bottom: 5px;\n  max-width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  line-height: 1.6rem;\n  font-size: 1.6rem;\n  letter-spacing: 0.5px;\n  font-weight: bold;\n}\n.tasks .task-card .data .title .project-title {\n  font-style: italic;\n  color: #818182;\n}\n.tasks .task-card .data .description {\n  flex: 0 0 auto;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  font-size: 1.2rem;\n  line-height: 1.9rem;\n  width: 100%;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  color: #636262;\n}\n.tasks .task-card .data .due-date {\n  margin-top: 5px;\n  font-size: 1.3rem;\n  letter-spacing: 2px;\n}\n.tasks .add-task {\n  padding-top: 20px;\n  padding-bottom: 20px;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 20px;\n  font-size: 1.2rem;\n  color: #636262;\n  cursor: pointer;\n}\n.tasks .add-task .add-circle {\n  position: relative;\n  border-radius: 50%;\n  width: 25px;\n  height: 25px;\n}\n.tasks .add-task img.icon {\n  position: absolute;\n  left: 50%;\n  top: 50%;\n  transform: translate(-50%, -50%);\n  height: 80%;\n  width: 80%;\n  filter: brightness(0) saturate(100%) invert(25%) sepia(67%) saturate(1617%) hue-rotate(327deg) brightness(91%) contrast(81%);\n}\n.tasks .add-task:hover {\n  color: #cc2530;\n}\n.tasks .add-task:hover .add-circle {\n  background-color: #cd3e47;\n}\n.tasks .add-task:hover img.icon {\n  filter: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(20deg) brightness(103%) contrast(101%);\n}\n\n#menu.hidden + main#content {\n  margin-left: 0;\n  width: 100vw;\n}\n\n@media (max-width: 800px) {\n  main#content {\n    margin-left: 0;\n    gap: 10px;\n  }\n  #menu:not(.hidden) + main#content {\n    background-color: rgba(0, 0, 0, 0.5);\n    width: 100vw;\n  }\n  #menu:not(.hidden) + main#content .tasks .task-card {\n    border-color: #5e5f63;\n  }\n  #menu:not(.hidden) + main#content .tasks .task-card .icon {\n    transition: all 0.3s;\n    filter: brightness(0) saturate(100%) invert(20%) sepia(5%) saturate(1101%) hue-rotate(169deg) brightness(101%) contrast(94%);\n  }\n  #menu.hidden + main#content {\n    padding-left: 10vw;\n    padding-right: 2vw;\n  }\n  .tasks .task-card {\n    padding-bottom: 10px;\n  }\n  .tasks .task-card .icons {\n    right: 5px;\n  }\n  .tasks .task-card .icon {\n    display: block;\n  }\n  .tasks .task-card .data {\n    gap: 7px;\n  }\n  .tasks .task-card .data .title {\n    font-size: 1.1rem;\n  }\n  .tasks .task-card .data .description {\n    font-size: 0.9rem;\n    line-height: 1.5rem;\n  }\n  .tasks .task-card .data .due-date {\n    font-size: 1rem;\n    font-weight: 600;\n    margin-top: 10px;\n    letter-spacing: 1px;\n  }\n}\n.task-popup-container {\n  display: none;\n  justify-content: center;\n  align-items: start;\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100vw;\n  height: 100vh;\n  z-index: 700;\n}\n.task-popup-container.visible {\n  display: flex;\n}\n.task-popup-container.visible .task-popup {\n  animation: show-popup var(--task-popup-snap-time) ease-out forwards;\n}\n.task-popup-container:not(.visible) .task-popup {\n  animation: hide-popup var(--task-popup-snap-time) ease-in forwards;\n}\n\n.task-popup {\n  box-sizing: border-box;\n  margin-top: 200px;\n  border-radius: 20px;\n  background-color: #fff;\n  box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px, rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 48px;\n}\n.task-popup .data {\n  display: flex;\n  flex-direction: column;\n  gap: 15px;\n  padding: 25px;\n  border-bottom: 1px solid #cecccc;\n}\n.task-popup .data .title {\n  font-size: 1.6rem;\n  font-weight: 600;\n}\n.task-popup .data .description {\n  width: 100%;\n  max-height: min(500px, 100vh - 470px);\n  font-size: 1.05rem;\n  overflow-x: hidden;\n  overflow-y: scroll;\n  resize: none;\n  margin-bottom: 15px;\n}\n.task-popup .data .title,\n.task-popup .data .description {\n  padding: none;\n  border: none;\n  outline: none;\n  color: #171717;\n}\n.task-popup .data .title::placeholder,\n.task-popup .data .description::placeholder {\n  color: #6f6f6f;\n}\n.task-popup .extra-fields {\n  height: 30px;\n  display: flex;\n  flex-direction: row;\n  gap: 15px;\n  color: #6f6f6f;\n}\n.task-popup .extra-fields .flag-icon {\n  width: 22px;\n  height: 22px;\n  filter: var(--color-filter);\n}\n.task-popup .extra-fields .dropdown-flag-icon {\n  width: 30px;\n  height: 30px;\n}\n.task-popup .extra-fields .date-picker {\n  border-radius: 5px;\n  border: 1px solid #c1c1c1;\n  outline: none;\n  color: #636363;\n  font-size: 0.9rem;\n}\n.task-popup .extra-fields .priority-select {\n  --color-filter: invert(52%) sepia(1%) saturate(0%) hue-rotate(278deg)\n    brightness(93%) contrast(85%);\n  position: relative;\n}\n.task-popup .extra-fields .priority-button {\n  box-sizing: border-box;\n  height: 100%;\n  width: 100%;\n  padding-left: 8px;\n  padding-right: 8px;\n  border-radius: 5px;\n  border: 1px solid #c1c1c1;\n  display: flex;\n  flex-direction: row;\n  gap: 5px;\n  align-items: center;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: inherit;\n  background-color: transparent;\n}\n.task-popup .extra-fields .date-picker,\n.task-popup .extra-fields .priority-button {\n  cursor: pointer;\n}\n.task-popup .extra-fields .date-picker:hover,\n.task-popup .extra-fields .priority-button:hover {\n  background-color: #ededed;\n}\n.task-popup .extra-fields .priority-dropdown {\n  display: none;\n  overflow: hidden;\n  position: absolute;\n  left: 0;\n  bottom: 0;\n  transform: translate(-25%, 100%);\n  z-index: 701;\n}\n.task-popup .extra-fields .priority-dropdown.visible {\n  width: 200px;\n  border: 1px solid #cecccc;\n  border-radius: 7.5px;\n  display: flex;\n  flex-direction: column;\n  background-color: #fff;\n}\n.task-popup .extra-fields .priority-dropdown .dropdown-option {\n  box-sizing: border-box;\n  height: 50px;\n  padding: 15px;\n  display: flex;\n  flex-direction: row;\n  gap: 10px;\n  font-size: 1.1rem;\n  font-weight: 600;\n  font-family: MasivaMedium, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n  color: black;\n  background-color: transparent;\n  border: none;\n  cursor: pointer;\n}\n.task-popup .extra-fields .priority-dropdown .dropdown-option:hover {\n  background-color: #e2e2e2;\n}\n.task-popup .extra-fields .priority-dropdown .dropdown-option img.icon {\n  filter: var(--color-filter);\n}\n.task-popup .bottom-ribbon {\n  height: 100px;\n  padding-left: 20px;\n  padding-right: 20px;\n  display: flex;\n  flex-direction: row;\n  justify-content: space-between;\n  align-items: center;\n  gap: 10px;\n}\n.task-popup .bottom-ribbon .project-select {\n  position: relative;\n}\n.task-popup .bottom-ribbon .project-button {\n  padding: 10px;\n  border: none;\n  background-color: transparent;\n  border-radius: 7.5px;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 5px;\n  color: #777777;\n  font-size: 1.1rem;\n  font-weight: bold;\n  cursor: pointer;\n}\n.task-popup .bottom-ribbon .project-button img,\n.task-popup .bottom-ribbon .project-button svg {\n  height: 20px;\n}\n.task-popup .bottom-ribbon .project-button:hover {\n  color: black;\n  background-color: #e2e2e2;\n}\n.task-popup .bottom-ribbon .project-button:active {\n  background-color: #d6d6d6;\n}\n.task-popup .bottom-ribbon .project-dropdown {\n  display: none;\n  overflow-y: scroll;\n  position: absolute;\n  left: 0;\n  bottom: 0;\n  transform: translate(-22.5%, 100%);\n  max-height: 210px;\n  z-index: 701;\n}\n.task-popup .bottom-ribbon .project-dropdown.visible {\n  width: 200px;\n  border: 1px solid #cecccc;\n  border-radius: 7.5px;\n  display: flex;\n  flex-direction: column;\n  background-color: #fff;\n}\n.task-popup .bottom-ribbon .project-dropdown .dropdown-option {\n  box-sizing: border-box;\n  height: 50px;\n  padding: 15px;\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 10px;\n  font-size: 1.1rem;\n  font-weight: bold;\n  font-family: MasivaRegular, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n  color: black;\n  background-color: transparent;\n  border: none;\n  cursor: pointer;\n}\n.task-popup .bottom-ribbon .project-dropdown .dropdown-option:hover {\n  background-color: #e2e2e2;\n}\n.task-popup .bottom-ribbon .project-dropdown .dropdown-option .text {\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n.task-popup .bottom-ribbon .project-dropdown .dropdown-option img {\n  filter: var(--color-filter);\n  height: 25px;\n  width: 25px;\n}\n.task-popup .bottom-ribbon .submition-buttons {\n  display: flex;\n  flex-direction: row;\n  gap: 20px;\n  height: 50px;\n}\n.task-popup .bottom-ribbon .submition-buttons button {\n  padding-left: 15px;\n  padding-right: 15px;\n  font-size: 1.3rem;\n  font-weight: bold;\n  border: none;\n  border-radius: 7.5px;\n  cursor: pointer;\n}\n.task-popup .bottom-ribbon .submition-buttons .cancel {\n  background-color: #e2e2e2;\n}\n.task-popup .bottom-ribbon .submition-buttons .cancel:hover {\n  background-color: #d6d6d6;\n}\n.task-popup .bottom-ribbon .submition-buttons .cancel:active {\n  background-color: #c1c1c1;\n}\n.task-popup .bottom-ribbon .submition-buttons .submit {\n  background-color: #c5444c;\n  color: white;\n}\n.task-popup .bottom-ribbon .submition-buttons .submit:hover {\n  background-color: #a93d44;\n}\n.task-popup .bottom-ribbon .submition-buttons .submit:active {\n  background-color: #a1363d;\n}\n\n.task-popup:invalid .bottom-ribbon .submition-buttons .submit {\n  background-color: rgba(197, 68, 77, 0.6431372549);\n  cursor: not-allowed;\n}\n\n.p1 {\n  --color-filter: invert(32%) sepia(38%) saturate(1159%) hue-rotate(309deg)\n    brightness(92%) contrast(93%);\n}\n\n.p2 {\n  --color-filter: invert(52%) sepia(61%) saturate(1255%) hue-rotate(357deg)\n    brightness(101%) contrast(97%);\n}\n\n.p3 {\n  --color-filter: invert(40%) sepia(13%) saturate(5038%) hue-rotate(188deg)\n    brightness(94%) contrast(106%);\n}\n\n.pn {\n  --color-filter: invert(52%) sepia(1%) saturate(0%) hue-rotate(278deg)\n    brightness(93%) contrast(85%);\n}\n\n@media (max-width: 500px) {\n  .task-popup .bottom-ribbon {\n    padding-left: 15px;\n    padding-right: 15px;\n  }\n  .task-popup .bottom-ribbon .project-button {\n    box-sizing: border-box;\n    height: 50px;\n    padding: 8px;\n    gap: 5px;\n  }\n  .task-popup .bottom-ribbon .project-button .text {\n    max-width: 6ch;\n    overflow: hidden;\n  }\n  .task-popup .bottom-ribbon .project-dropdown {\n    transform: translate(-15%, 100%);\n  }\n  .task-popup .bottom-ribbon .submition-buttons {\n    gap: 10px;\n  }\n  .task-popup .bottom-ribbon .submition-buttons button {\n    padding-left: 10px;\n    padding-right: 10px;\n    font-size: 1rem;\n  }\n}\nhtml,\nbody {\n  padding: 0;\n  margin: 0;\n}\n\nbody {\n  font-family: MasivaRegular, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n  background-color: var(--main-bgc);\n}\n\ninput,\ntextarea {\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n}\n\n::-webkit-scrollbar-thumb {\n  background: #666;\n  border-radius: 20px;\n}\n\n::-webkit-scrollbar-track {\n  background: #ddd;\n  border-radius: 20px;\n}", "",{"version":3,"sources":["webpack://./src/styles/abstracts/assets.scss","webpack://./src/styles/content/style.scss","webpack://./src/styles/abstracts/custom-properties.scss","webpack://./src/styles/content/loading-screen.scss","webpack://./src/styles/content/header.scss","webpack://./src/styles/content/menu.scss","webpack://./src/styles/content/content.scss","webpack://./src/styles/content/task-popup.scss"],"names":[],"mappings":"AAAA;EACE,0BAAA;EACA,4CAAA;ACCF;ADCA;EACE,yBAAA;EACA,4CAAA;ACCF;ADCA;EACE;IACE,UAAA;ECCF;EDCA;IACE,qCAAA;ECCF;EDCA;IACE,qCAAA;ECCF;EDCA;IACE,uBAAA;ECCF;AACF;ADCA;EACE;IACE,UAAA;ECCF;EDCA;IACE,UAAA;ECCF;AACF;ADCA;EACE;IACE,UAAA;ECCF;EDCA;IACE,UAAA;ECCF;AACF;ADCA;EACE;IACE,uBAAA;IACA,uBAAA;ECCF;EDCA;IACE,8BAAA;IACA,uBAAA;ECCF;EDCA;IACE,UAAA;ECCF;AACF;ADCA;EACE;IACE,8BAAA;IACA,uBAAA;ECCF;EDCA;IACE,uBAAA;IACA,uBAAA;ECCF;AACF;ADCA;EACE;IACE,8BAAA;IACA,UAAA;IACA,0CAAA;ECCF;EDCA;IACE,0BAAA;IACA,UAAA;IACA,8BAAA;ECCF;AACF;ADCA;EACE;IACE,0BAAA;IACA,UAAA;IACA,8BAAA;ECCF;EDCA;IACE,6BAAA;IACA,UAAA;IACA,0CAAA;ECCF;AACF;ACpFA;EACE,iCAAA;EACA,6BAAA;EACA,uBAAA;EACA,mBAAA;EACA,mBAAA;EACA,4BAAA;EAEA,mBAAA;EACA,6BAAA;EACA,sBAAA;EACA,oCAAA;EACA,4BAAA;ADqFF;;AClFA;EACE;IACE,6BAAA;EDqFF;AACF;ACnFA;EACE;IACE,6BAAA;EDqFF;AACF;AE1GA;EACE,eAAA;EACA,YAAA;EACA,aAAA;EACA,iBAAA;EAEA,oBAAA;EACA,aAAA;EACA,sBAAA;EACA,mBAAA;EACA,SAAA;EAEA,yCAAA;EACA,iCAAA;EACA,cAAA;AF0GF;AEzGE;EACE,wBAAA;EACA,uBAAA;AF2GJ;AE1GI;EACE,wBAAA;EACA,yDAAA;EACA,iCAAA;EACA,UAAA;EACA,4CAAA;AF4GN;AEzGE;EACE,aAAA;EACA,sBAAA;EACA,mBAAA;EACA,SAAA;AF2GJ;AEzGE;EACE,gBAAA;EACA,gBAAA;EACA,iBAAA;EACA,mBAAA;EAEA,UAAA;EACA,0CAAA;AF0GJ;AExGE;EACE,SAAA;EACA,2BAAA;EACA,qBAAA;EAEA,UAAA;EACA,0CAAA;AFyGJ;;AErGA;EACE;IACE,gBAAA;IACA,SAAA;EFwGF;EEvGE;IACE,SAAA;EFyGJ;AACF;AEtGA;EACE;IACE,SAAA;EFwGF;EEvGE;IACE,SAAA;EFyGJ;AACF;AG3KA;EACE,gBAAA;EACA,sBAAA;EACA,0BAAA;EACA,YAAA;EACA,kBAAA;EACA,mBAAA;EACA,qCAAA;EAEA,aAAA;EACA,mBAAA;EACA,mBAAA;EACA,SAAA;AH4KF;AG1KE;EACE,cAAA;AH4KJ;AGzKE;EACE,sBAAA;EACA,YAAA;EACA,kBAAA;EACA,eAAA;AH2KJ;AG1KI;EACE,0CAAA;AH4KN;AGzKE;EACE,YAAA;AH2KJ;AGzKE;EACE,cAAA;EACA,YAAA;EACA,YAAA;EACA,kBAAA;EACA,kBAAA;EACA,aAAA;EACA,mBAAA;EACA,QAAA;EACA,0CAAA;EACA,qBAAA;EACA,eAAA;AH2KJ;AG1KI;EAEE,yBAAA;AH2KN;AG1KM;EACE,oBAAA;EACA,6BAAA;AH4KR;AG1KM;EACE,cAAA;AH4KR;AG3KQ;EACE,cAAA;AH6KV;AG3KQ;EACE,cAAA;AH6KV;AGzKI;EACE,YAAA;AH2KN;AGzKI;EACE,WAAA;EACA,QAAA;EACA,YAAA;EACA,aAAA;EACA,iBAAA;EACA,+BAAA;EACA,kBAAA;EACA,6BAAA;AH2KN;AG1KM;EACE,cAAA;AH4KR;AG1KM;EACE,cAAA;AH4KR;;AGtKA;EACE;IACE,SAAA;EHyKF;AACF;AI7PA;EACE,eAAA;EACA,sBAAA;EACA,uBAAA;EACA,wCAAA;EACA,iBAAA;EAEA,aAAA;EACA,sBAAA;EACA,mBAAA;EACA,SAAA;EAEA,iCAAA;EACA,gBAAA;EACA,YAAA;AJ6PF;AI3PE;EACE,wFAAA;AJ6PJ;AI1PE;EACE,gFAAA;AJ4PJ;AIxPE;EACE,YAAA;AJ0PJ;AIxPI;EACE,oBAAA;AJ0PN;AIvPE;;EAEE,UAAA;AJyPJ;AIvPE;;;EAGE,aAAA;EACA,sBAAA;EACA,MAAA;AJyPJ;AIvPE;;;EAGE,sBAAA;EACA,WAAA;EACA,YAAA;EACA,kBAAA;EACA,kBAAA;EACA,mBAAA;EAEA,aAAA;EACA,mBAAA;EACA,mBAAA;EACA,SAAA;EAEA,eAAA;EACA,gBAAA;EACA,eAAA;EAEA,6BAAA;EACA,YAAA;EACA,kKAAA;AJsPJ;AIlPI;;;;;EAEE,qCAAA;AJuPN;AIrPI;;;EACE,kBAAA;EACA,cAAA;EACA,gBAAA;EACA,uBAAA;AJyPN;AIvPI;;;EACE,YAAA;EACA,mBAAA;EACA,iBAAA;AJ2PN;AIvPI;EACE,aAAA;AJyPN;AItPM;EACE,aAAA;AJwPR;AItPM;EACE,cAAA;AJwPR;AIvPQ;EACE,oCAAA;AJyPV;AIpPE;EACE,iBAAA;EACA,iBAAA;EACA,mBAAA;AJsPJ;AIpPE;EACE,aAAA;AJsPJ;AIrPI;EACE,cAAA;AJuPN;AIpPE;EACE,kBAAA;EACA,aAAA;EACA,sBAAA;EACA,WAAA;EACA,YAAA;EACA,kBAAA;EACA,aAAA;EACA,iBAAA;EACA,gBAAA;EACA,yBAAA;AJsPJ;AIrPI;EACE,aAAA;EACA,YAAA;EACA,aAAA;EACA,6BAAA;EACA,cAAA;EACA,iBAAA;AJuPN;AItPM;EACE,cAAA;AJwPR;AIrPI;EACE,kBAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,mBAAA;EACA,SAAA;EACA,YAAA;AJuPN;AItPM;EACE,kBAAA;EACA,mBAAA;EACA,iBAAA;EACA,iBAAA;EACA,YAAA;EACA,oBAAA;EACA,eAAA;AJwPR;AItPM;EACE,yBAAA;AJwPR;AIvPQ;EACE,yBAAA;AJyPV;AIvPQ;EACE,yBAAA;AJyPV;AItPM;EACE,yBAAA;EACA,YAAA;AJwPR;AIvPQ;EACE,yBAAA;AJyPV;AIvPQ;EACE,yBAAA;AJyPV;AIrPI;EACE,iDAAA;EACA,mBAAA;AJuPN;;AIlPA;EAGM;IACE,aAAA;EJmPN;EIjPI;IACE,cAAA;EJmPN;AACF;AK5aA;EACE,sBAAA;EACA,qCAAA;EACA,wCAAA;EACA,iBAAA;EACA,kBAAA;EACA,mBAAA;EACA,6BAAA;EAEA,aAAA;EACA,sBAAA;EACA,SAAA;EAEA,qCAAA;EACA,kBAAA;EACA,YAAA;AL4aF;AK3aE;EACE,eAAA;EACA,iBAAA;EACA,iKAAA;AL6aJ;;AKvaA;EACE,kBAAA;EACA,mBAAA;AL0aF;;AKvaA;EACE,WAAA;EACA,YAAA;AL0aF;AKzaE;EACE,+CAAA;EA6BA,eAAA;EACA,kBAAA;EACA,WAAA;EACA,iBAAA;EACA,oBAAA;EACA,2CAAA;EACA,aAAA;EACA,mBAAA;EACA,SAAA;EACA,6BAAA;AL+YJ;AKpbI;EACE,yBAAA;EACA,uBAAA;EACA,6BAAA;EACA;oDAAA;ALubN;AKpbI;EACE,yBAAA;EACA,uBAAA;EACA,6BAAA;EACA;oDAAA;ALubN;AKpbI;EACE,yBAAA;EACA,uBAAA;EACA,6BAAA;EACA;qDAAA;ALubN;AKpbI;EACE,yBAAA;EACA,uBAAA;EACA,6BAAA;EACA;oDAAA;ALubN;AK1aI;EACE,aAAA;EACA,YAAA;EACA,cAAA;EACA,kBAAA;EACA,eAAA;AL4aN;AK1aM;EACE,sCAAA;EACA,4HAAA;AL4aR;AKxaI;EACE,cAAA;AL0aN;AKxaI;EACE,kBAAA;EACA,aAAA;EACA,mBAAA;EACA,MAAA;EACA,QAAA;EACA,SAAA;AL0aN;AKxaI;EACE,kBAAA;EACA,cAAA;EACA,cAAA;EACA,sBAAA;EACA,WAAA;EACA,YAAA;EACA,eAAA;EACA,qBAAA;EACA,uCAAA;EACA,2CAAA;EACA,eAAA;EACA,6BAAA;AL0aN;AKzaM;EACE,gBAAA;EACA,wBAAA;EACA,SAAA;EACA,QAAA;AL2aR;AKzaM;EACE,kBAAA;EACA,UAAA;EACA,WAAA;EACA,SAAA;EACA,QAAA;EACA,gCAAA;EACA,iCAAA;EACA,UAAA;EACA,iCAAA;AL2aR;AKzaM;EACE,qCAAA;AL2aR;AK1aQ;EACE,UAAA;AL4aV;AKxaI;EACE,6BAAA;EACA,aAAA;EACA,sBAAA;EACA,SAAA;AL0aN;AKzaM;EACE,eAAA;EACA,kBAAA;EACA,eAAA;EACA,gBAAA;EACA,uBAAA;EACA,mBAAA;EACA,iBAAA;EACA,qBAAA;EACA,iBAAA;AL2aR;AK1aQ;EACE,kBAAA;EACA,cAAA;AL4aV;AKzaM;EACE,cAAA;EACA,oBAAA;EACA,qBAAA;EACA,4BAAA;EACA,iBAAA;EACA,mBAAA;EACA,WAAA;EACA,gBAAA;EACA,uBAAA;EACA,cAAA;AL2aR;AKzaM;EACE,eAAA;EACA,iBAAA;EACA,mBAAA;AL2aR;AKvaE;EACE,iBAAA;EACA,oBAAA;EACA,aAAA;EACA,mBAAA;EACA,mBAAA;EACA,SAAA;EAEA,iBAAA;EACA,cAAA;EACA,eAAA;ALwaJ;AKvaI;EACE,kBAAA;EACA,kBAAA;EACA,WAAA;EACA,YAAA;ALyaN;AKvaI;EACE,kBAAA;EACA,SAAA;EACA,QAAA;EACA,gCAAA;EACA,WAAA;EACA,UAAA;EACA,4HAAA;ALyaN;AKtaI;EACE,cAAA;ALwaN;AKvaM;EACE,yBAAA;ALyaR;AKvaM;EACE,4HAAA;ALyaR;;AKlaA;EACE,cAAA;EACA,YAAA;ALqaF;;AKlaA;EACE;IACE,cAAA;IACA,SAAA;ELqaF;EKnaA;IACE,oCAAA;IACA,YAAA;ELqaF;EKpaE;IACE,qBAAA;ELsaJ;EKraI;IACE,oBAAA;IACA,4HAAA;ELuaN;EKlaA;IACE,kBAAA;IACA,kBAAA;ELoaF;EKlaA;IACE,oBAAA;ELoaF;EKnaE;IACE,UAAA;ELqaJ;EKnaE;IACE,cAAA;ELqaJ;EKnaE;IACE,QAAA;ELqaJ;EKpaI;IACE,iBAAA;ELsaN;EKpaI;IACE,iBAAA;IACA,mBAAA;ELsaN;EKpaI;IACE,eAAA;IACA,gBAAA;IACA,gBAAA;IACA,mBAAA;ELsaN;AACF;AM3qBA;EACE,aAAA;EACA,uBAAA;EACA,kBAAA;EACA,eAAA;EACA,MAAA;EACA,OAAA;EACA,YAAA;EACA,aAAA;EACA,YAAA;AN6qBF;AM5qBE;EACE,aAAA;AN8qBJ;AM7qBI;EACE,mEAAA;AN+qBN;AM3qBI;EACE,kEAAA;AN6qBN;;AMzqBA;EACE,sBAAA;EACA,iBAAA;EACA,mBAAA;EAEA,sBAAA;EACA,sHAAA;AN2qBF;AMxqBE;EACE,aAAA;EACA,sBAAA;EACA,SAAA;EACA,aAAA;EACA,gCAAA;AN0qBJ;AMzqBI;EACE,iBAAA;EACA,gBAAA;AN2qBN;AMzqBI;EACE,WAAA;EACA,qCAAA;EACA,kBAAA;EACA,kBAAA;EACA,kBAAA;EACA,YAAA;EACA,mBAAA;AN2qBN;AMzqBI;;EAEE,aAAA;EACA,YAAA;EACA,aAAA;EACA,cAAA;AN2qBN;AM1qBM;;EACE,cAAA;AN6qBR;AMzqBE;EACE,YAAA;EACA,aAAA;EACA,mBAAA;EACA,SAAA;EACA,cAAA;AN2qBJ;AM1qBI;EACE,WAAA;EACA,YAAA;EACA,2BAAA;AN4qBN;AM1qBI;EACE,WAAA;EACA,YAAA;AN4qBN;AM1qBI;EACE,kBAAA;EACA,yBAAA;EACA,aAAA;EACA,cAAA;EACA,iBAAA;AN4qBN;AM1qBI;EACE;iCAAA;EAEA,kBAAA;AN4qBN;AM1qBI;EACE,sBAAA;EACA,YAAA;EACA,WAAA;EACA,iBAAA;EACA,kBAAA;EACA,kBAAA;EACA,yBAAA;EACA,aAAA;EACA,mBAAA;EACA,QAAA;EACA,mBAAA;EACA,iBAAA;EACA,gBAAA;EACA,cAAA;EACA,6BAAA;AN4qBN;AM1qBI;;EAEE,eAAA;AN4qBN;AM3qBM;;EACE,yBAAA;AN8qBR;AM3qBI;EACE,aAAA;EACA,gBAAA;EACA,kBAAA;EACA,OAAA;EACA,SAAA;EACA,gCAAA;EACA,YAAA;AN6qBN;AM5qBM;EACE,YAAA;EACA,yBAAA;EACA,oBAAA;EACA,aAAA;EACA,sBAAA;EACA,sBAAA;AN8qBR;AM5qBM;EACE,sBAAA;EACA,YAAA;EACA,aAAA;EACA,aAAA;EACA,mBAAA;EACA,SAAA;EAEA,iBAAA;EACA,gBAAA;EACA,iKAAA;EAGA,YAAA;EACA,6BAAA;EACA,YAAA;EACA,eAAA;AN2qBR;AM1qBQ;EACE,yBAAA;AN4qBV;AM1qBQ;EACE,2BAAA;AN4qBV;AMvqBE;EACE,aAAA;EACA,kBAAA;EACA,mBAAA;EACA,aAAA;EACA,mBAAA;EACA,8BAAA;EACA,mBAAA;EACA,SAAA;ANyqBJ;AMxqBI;EACE,kBAAA;AN0qBN;AMxqBI;EACE,aAAA;EACA,YAAA;EACA,6BAAA;EACA,oBAAA;EACA,aAAA;EACA,mBAAA;EACA,mBAAA;EACA,QAAA;EACA,cAAA;EACA,iBAAA;EACA,iBAAA;EACA,eAAA;AN0qBN;AMzqBM;;EAEE,YAAA;AN2qBR;AMzqBM;EACE,YAAA;EACA,yBAAA;AN2qBR;AMzqBM;EACE,yBAAA;AN2qBR;AMxqBI;EACE,aAAA;EACA,kBAAA;EACA,kBAAA;EACA,OAAA;EACA,SAAA;EACA,kCAAA;EACA,iBAAA;EACA,YAAA;AN0qBN;AMzqBM;EACE,YAAA;EACA,yBAAA;EACA,oBAAA;EACA,aAAA;EACA,sBAAA;EACA,sBAAA;AN2qBR;AMzqBM;EACE,sBAAA;EACA,YAAA;EACA,aAAA;EACA,aAAA;EACA,mBAAA;EACA,mBAAA;EACA,SAAA;EAEA,iBAAA;EACA,iBAAA;EACA,kKAAA;EAGA,YAAA;EACA,6BAAA;EACA,YAAA;EACA,eAAA;ANwqBR;AMvqBQ;EACE,yBAAA;ANyqBV;AMvqBQ;EACE,gBAAA;EACA,uBAAA;ANyqBV;AMvqBQ;EACE,2BAAA;EACA,YAAA;EACA,WAAA;ANyqBV;AMrqBI;EACE,aAAA;EACA,mBAAA;EACA,SAAA;EACA,YAAA;ANuqBN;AMtqBM;EACE,kBAAA;EACA,mBAAA;EACA,iBAAA;EACA,iBAAA;EACA,YAAA;EACA,oBAAA;EACA,eAAA;ANwqBR;AMtqBM;EACE,yBAAA;ANwqBR;AMvqBQ;EACE,yBAAA;ANyqBV;AMvqBQ;EACE,yBAAA;ANyqBV;AMtqBM;EACE,yBAAA;EACA,YAAA;ANwqBR;AMvqBQ;EACE,yBAAA;ANyqBV;AMvqBQ;EACE,yBAAA;ANyqBV;;AMnqBA;EACE,iDAAA;EACA,mBAAA;ANsqBF;;AMpqBA;EACE;iCAAA;ANwqBF;;AMrqBA;EACE;kCAAA;ANyqBF;;AMtqBA;EACE;kCAAA;AN0qBF;;AMvqBA;EACE;iCAAA;AN2qBF;;AMxqBA;EAEI;IACE,kBAAA;IACA,mBAAA;EN0qBJ;EMzqBI;IACE,sBAAA;IACA,YAAA;IACA,YAAA;IACA,QAAA;EN2qBN;EM1qBM;IACE,cAAA;IACA,gBAAA;EN4qBR;EMzqBI;IACE,gCAAA;EN2qBN;EMzqBI;IACE,SAAA;EN2qBN;EM1qBM;IACE,kBAAA;IACA,mBAAA;IACA,eAAA;EN4qBR;AACF;AAv+BA;;EAEE,UAAA;EACA,SAAA;AAy+BF;;AAv+BA;EACE,kKAAA;EAGA,iCAAA;AAw+BF;;AAt+BA;;EAEE,mJAAA;AAy+BF;;AAt+BA;EACE,UAAA;AAy+BF;;AAv+BA;EACE,gBAAA;EACA,mBAAA;AA0+BF;;AAx+BA;EACE,gBAAA;EACA,mBAAA;AA2+BF","sourcesContent":["@font-face {\n  font-family: MasivaRegular;\n  src: url(../../assets/fonts/Masiva-Regular.otf);\n}\n@font-face {\n  font-family: MasivaMedium;\n  src: url(../../assets/fonts/Masiva-Medium.otf);\n}\n@keyframes load-logo {\n  0% {\n    width: 0px;\n  }\n  50% {\n    width: calc(0.405 * var(--logo-size));\n  }\n  54% {\n    width: calc(0.405 * var(--logo-size));\n  }\n  100% {\n    width: var(--logo-size);\n  }\n}\n@keyframes fade-in {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n@keyframes fade-out {\n  from {\n    opacity: 1;\n  }\n  to {\n    opacity: 0;\n  }\n}\n@keyframes hide-menu-to-left {\n  0% {\n    transform: translate(0);\n    width: var(--menu-size);\n  }\n  99% {\n    transform: translate(-100%, 0);\n    width: var(--menu-size);\n  }\n  100% {\n    width: 0px;\n  }\n}\n@keyframes show-menu {\n  0% {\n    transform: translate(-100%, 0);\n    width: var(--menu-size);\n  }\n  100% {\n    transform: translate(0);\n    width: var(--menu-size);\n  }\n}\n@keyframes show-popup {\n  0% {\n    transform: translate(0, 100px);\n    opacity: 0;\n    width: calc(var(--task-popup-width) * 0.9);\n  }\n  100% {\n    transform: translate(0, 0);\n    opacity: 1;\n    width: var(--task-popup-width);\n  }\n}\n@keyframes hide-popup {\n  0% {\n    transform: translate(0, 0);\n    opacity: 1;\n    width: var(--task-popup-width);\n  }\n  100% {\n    transform: translate(0, 50px);\n    opacity: 0;\n    width: calc(var(--task-popup-width) * 0.9);\n  }\n}\n","@use \"../abstracts\";\n@use \"./loading-screen.scss\";\n@use \"./header.scss\";\n@use \"./menu.scss\";\n@use \"./content.scss\";\n@use \"./task-popup.scss\";\nhtml,\nbody {\n  padding: 0;\n  margin: 0;\n}\nbody {\n  font-family: MasivaRegular, system-ui, -apple-system, BlinkMacSystemFont,\n    \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\",\n    sans-serif;\n  background-color: var(--main-bgc);\n}\ninput,\ntextarea {\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto,\n    Oxygen, Ubuntu, Cantarell, \"Open Sans\", \"Helvetica Neue\", sans-serif;\n}\n::-webkit-scrollbar {\n  width: 5px;\n}\n::-webkit-scrollbar-thumb {\n  background: #666;\n  border-radius: 20px;\n}\n::-webkit-scrollbar-track {\n  background: #ddd;\n  border-radius: 20px;\n}\n","body {\n  --loading-screen-hide-delay: 3.7s;\n  --logo-size: min(500px, 90vw);\n  --header-color: #a93d44;\n  --header-size: 60px;\n  --main-bgc: #e9ecef;\n  --header-icon-color: #fafbfb;\n  // the color for icons will be edited in the svg directly with fill\n  --menu-bgc: #eae2e5;\n  --menu-size: min(420px, 90vw);\n  --menu-snap-time: 0.2s;\n  --task-popup-width: min(800px, 90vw);\n  --task-popup-snap-time: 0.3s;\n}\n\n@media (max-height: 800px) {\n  body {\n    --logo-size: min(400px, 90vw);\n  }\n}\n@media (min-width: 1200px) {\n  body {\n    --menu-size: min(430px, 90vw);\n  }\n}\n","@use \"../abstracts\" as *;\n\n#loading-screen {\n  position: fixed;\n  width: 100vw;\n  height: 100vh;\n  padding-top: 15vh;\n\n  padding-bottom: 10vh;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 40px;\n\n  animation: fade-out 0.5s ease 4s forwards;\n  background-color: var(--main-bgc);\n  z-index: 10000;\n  .logo-container {\n    height: var(--logo-size);\n    width: var(--logo-size);\n    .loading-logo {\n      height: var(--logo-size);\n      background-image: url(../../assets/images/check.svg);\n      background-size: var(--logo-size);\n      width: 0px;\n      animation: load-logo 0.5s forwards ease 0.5s;\n    }\n  }\n  .text {\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    gap: 10px;\n  }\n  h1 {\n    margin-bottom: 0;\n    margin-top: 10px;\n    font-size: 2.5rem;\n    letter-spacing: 2px;\n\n    opacity: 0;\n    animation: fade-in 0.5s forwards ease 1.5s;\n  }\n  p {\n    margin: 0;\n    font-size: min(1.4rem, 6vw);\n    letter-spacing: 0.5px;\n\n    opacity: 0;\n    animation: fade-in 0.5s forwards ease 2.5s;\n  }\n}\n\n@media (max-height: 800px) {\n  #loading-screen {\n    padding-top: 7vh;\n    gap: 60px;\n    .text {\n      gap: 20px;\n    }\n  }\n}\n@media (min-width: 800px) {\n  #loading-screen {\n    gap: 80px;\n    .text {\n      gap: 30px;\n    }\n  }\n}\n","@use \"../abstracts\" as *;\nheader {\n  position: sticky;\n  box-sizing: border-box;\n  height: var(--header-size);\n  width: 100vw;\n  padding-left: 20px;\n  padding-right: 20px;\n  background-color: var(--header-color);\n\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  gap: 10px;\n\n  & > * {\n    flex: 0 0 auto;\n  }\n\n  .icon {\n    box-sizing: border-box;\n    height: 40px;\n    border-radius: 7px;\n    cursor: pointer;\n    &:hover {\n      background-color: rgba(256, 256, 256, 0.1);\n    }\n  }\n  .add-icon {\n    padding: 5px;\n  }\n  .search-bar {\n    flex: 0 1 auto;\n    height: 40px;\n    width: 300px;\n    margin-right: auto;\n    border-radius: 7px;\n    display: flex;\n    flex-direction: row;\n    gap: 5px;\n    background-color: rgba(256, 256, 256, 0.1);\n    transition: all 0.15s;\n    cursor: pointer;\n    &:hover,\n    &:focus-within {\n      background-color: #fffafa;\n      .icon {\n        filter: invert(100%);\n        background-color: transparent;\n      }\n      #search-field {\n        color: #161515;\n        &::-webkit-input-placeholder {\n          color: #807e7e;\n        }\n        &::-ms-placeholder {\n          color: #807e7e;\n        }\n      }\n    }\n    &:focus-within {\n      width: 600px;\n    }\n    #search-field {\n      flex: 1 1 0;\n      width: 0;\n      border: none;\n      outline: none;\n      font-size: 1.2rem;\n      color: var(--header-icon-color);\n      caret-color: black;\n      background-color: transparent;\n      &::-webkit-input-placeholder {\n        color: #d9adb0;\n      }\n      &::-ms-placeholder {\n        color: #d9adb0;\n      }\n    }\n  }\n}\n\n@media (min-width: 1200px) {\n  header {\n    gap: 15px;\n  }\n}\n","@use \"../abstracts\" as *;\n#menu {\n  position: fixed;\n  box-sizing: border-box;\n  width: var(--menu-size);\n  height: calc(100vh - var(--header-size));\n  padding-top: 50px;\n\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 60px;\n\n  background-color: var(--menu-bgc);\n  overflow: hidden;\n  z-index: 500;\n\n  &.hidden {\n    animation: hide-menu-to-left var(--menu-snap-time)\n      cubic-bezier(0.4, 0, 0.2, 1) forwards;\n  }\n  &:not(.hidden) {\n    animation: show-menu var(--menu-snap-time) cubic-bezier(0.4, 0, 0.2, 1)\n      forwards;\n  }\n\n  .icon {\n    height: 25px;\n\n    &.plus-icon {\n      filter: invert(100%);\n    }\n  }\n  .tasks-sections,\n  .projects-sections {\n    width: 90%;\n  }\n  .tasks-sections,\n  .projects-sections,\n  .projects-sections .projects {\n    display: flex;\n    flex-direction: column;\n    gap: 0;\n  }\n  .task-section,\n  .project-section,\n  .add-project {\n    box-sizing: border-box;\n    width: 100%;\n    height: 50px;\n    border-radius: 6px;\n    padding-left: 10px;\n    padding-right: 10px;\n\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n    gap: 12px;\n\n    font-size: 1rem;\n    font-weight: 600;\n    cursor: pointer;\n\n    background-color: transparent;\n    border: none;\n    font-family: MasivaRegular, system-ui, -apple-system, BlinkMacSystemFont,\n      \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\",\n      \"Helvetica Neue\", sans-serif;\n\n    &:hover,\n    &.selected {\n      background-color: rgba($color: black, $alpha: 0.05);\n    }\n    .title {\n      margin-right: auto;\n      max-width: 80%;\n      overflow: hidden;\n      text-overflow: ellipsis;\n    }\n    .number-of-tasks {\n      opacity: 0.4;\n      font-weight: normal;\n      margin-right: 4px;\n    }\n  }\n  .project-section {\n    .delete-icon {\n      display: none;\n    }\n    &:hover {\n      .number-of-tasks {\n        display: none;\n      }\n      .delete-icon {\n        display: block;\n        &:hover {\n          filter: brightness(0) saturate(100%);\n        }\n      }\n    }\n  }\n  .projects-title {\n    font-size: 1.5rem;\n    font-weight: bold;\n    margin-bottom: 10px;\n  }\n  .add-project.adding {\n    display: none;\n    + .project-form {\n      display: block;\n    }\n  }\n  .project-form {\n    position: relative;\n    display: none;\n    box-sizing: border-box;\n    width: 100%;\n    height: 90px;\n    border-radius: 6px;\n    padding: 10px;\n    padding-top: 10px;\n    margin-top: 10px;\n    background-color: #ded7d9;\n    input {\n      padding: none;\n      border: none;\n      outline: none;\n      background-color: transparent;\n      color: #171717;\n      font-size: 1.3rem;\n      &::placeholder {\n        color: #5a5a5a;\n      }\n    }\n    .submit-buttons {\n      position: absolute;\n      right: 20px;\n      bottom: 10px;\n      display: flex;\n      flex-direction: row;\n      gap: 15px;\n      height: 35px;\n      button {\n        padding-left: 12px;\n        padding-right: 12px;\n        font-size: 1.3rem;\n        font-weight: bold;\n        border: none;\n        border-radius: 7.5px;\n        cursor: pointer;\n      }\n      .cancel {\n        background-color: #cdcdcd;\n        &:hover {\n          background-color: #bababa;\n        }\n        &:active {\n          background-color: #b0aeae;\n        }\n      }\n      .submit {\n        background-color: #ca5b63;\n        color: white;\n        &:hover {\n          background-color: #ae4a51;\n        }\n        &:active {\n          background-color: #a93a42;\n        }\n      }\n    }\n    &:invalid .submit-buttons .submit {\n      background-color: #ca5b62a7;\n      cursor: not-allowed;\n    }\n  }\n}\n\n@media (max-width: 800px) {\n  #menu .project-section {\n    &.selected {\n      .number-of-tasks {\n        display: none;\n      }\n      .delete-icon {\n        display: block;\n      }\n    }\n  }\n}\n","@use \"../abstracts\" as *;\nmain#content {\n  box-sizing: border-box;\n  width: calc(100vw - var(--menu-size));\n  height: calc(100vh - var(--header-size));\n  padding-top: 50px;\n  padding-left: 10vw;\n  padding-right: 10vw;\n  margin-left: var(--menu-size);\n\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n\n  transition: all var(--menu-snap-time);\n  overflow-y: scroll;\n  z-index: 200;\n  .content-title {\n    font-size: 2rem;\n    font-weight: bold;\n    font-family: MasivaMedium, system-ui, -apple-system, BlinkMacSystemFont,\n      \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\",\n      \"Helvetica Neue\", sans-serif;\n  }\n}\n\n#menu.hidden + main#content {\n  padding-left: 20vw;\n  padding-right: 20vw;\n}\n\n.tasks {\n  width: 100%;\n  height: 100%;\n  .task-card {\n    /* #region  priority based checkmark coloring */\n    &.p1 {\n      --checkbox-color: #a93d44;\n      --checkbox-bgc: #d8bdc2;\n      --checkbox-light-bgc: #e1d5d8;\n      --check-color-filter: invert(25%) sepia(67%) saturate(1617%)\n        hue-rotate(327deg) brightness(91%) contrast(81%);\n    }\n    &.p2 {\n      --checkbox-color: #fb8909;\n      --checkbox-bgc: #e9ddcd;\n      --checkbox-light-bgc: #eae4dd;\n      --check-color-filter: invert(71%) sepia(47%) saturate(7495%)\n        hue-rotate(10deg) brightness(106%) contrast(93%);\n    }\n    &.p3 {\n      --checkbox-color: #246fe0;\n      --checkbox-bgc: #c1d2ec;\n      --checkbox-light-bgc: #d2ddee;\n      --check-color-filter: invert(41%) sepia(56%) saturate(1480%)\n        hue-rotate(194deg) brightness(85%) contrast(108%);\n    }\n    &.pn {\n      --checkbox-color: #9ba1a7;\n      --checkbox-bgc: #d8dbdf;\n      --checkbox-light-bgc: #e1e5e8;\n      --check-color-filter: invert(65%) sepia(12%) saturate(166%)\n        hue-rotate(169deg) brightness(96%) contrast(90%);\n    }\n    /* #endregion */\n    position: relative;\n    width: 100%;\n    padding-top: 20px;\n    padding-bottom: 20px;\n    border-bottom: 1px solid rgb(213, 213, 213);\n    display: flex;\n    flex-direction: row;\n    gap: 20px;\n    transition: all 0.1s ease-out;\n    .icon {\n      display: none;\n      height: 30px;\n      padding: 2.5px;\n      border-radius: 5px;\n      cursor: pointer;\n\n      &:hover {\n        background-color: rgba($color: #000000, $alpha: 0.075);\n        filter: brightness(0) saturate(100%) invert(20%) sepia(5%)\n          saturate(1101%) hue-rotate(169deg) brightness(101%) contrast(94%);\n      }\n    }\n    &:hover .icon {\n      display: block;\n    }\n    .icons {\n      position: absolute;\n      display: flex;\n      flex-direction: row;\n      gap: 0;\n      right: 0;\n      top: 20px;\n    }\n    .checkbox {\n      position: relative;\n      flex-shrink: 0;\n      display: block;\n      box-sizing: border-box;\n      width: 25px;\n      height: 25px;\n      margin-top: 5px;\n      border-radius: 1000px;\n      border: 2px solid var(--checkbox-color);\n      background-color: var(--checkbox-light-bgc);\n      cursor: pointer;\n      transition: all 0.1s ease-out;\n      input {\n        appearance: none;\n        -webkit-appearance: none;\n        height: 0;\n        width: 0;\n      }\n      .check {\n        position: absolute;\n        width: 80%;\n        height: 80%;\n        left: 50%;\n        top: 50%;\n        transform: translate(-50%, -50%);\n        filter: var(--check-color-filter);\n        opacity: 0;\n        transition: opacity 0.1s ease-out;\n      }\n      &:hover {\n        background-color: var(--checkbox-bgc);\n        .check {\n          opacity: 1;\n        }\n      }\n    }\n    .data {\n      max-width: calc(100% - 120px);\n      display: flex;\n      flex-direction: column;\n      gap: 10px;\n      .title {\n        margin-top: 5px;\n        margin-bottom: 5px;\n        max-width: 100%;\n        overflow: hidden;\n        text-overflow: ellipsis;\n        line-height: 1.6rem;\n        font-size: 1.6rem;\n        letter-spacing: 0.5px;\n        font-weight: bold;\n        .project-title {\n          font-style: italic;\n          color: #818182;\n        }\n      }\n      .description {\n        flex: 0 0 auto;\n        display: -webkit-box;\n        -webkit-line-clamp: 2;\n        -webkit-box-orient: vertical;\n        font-size: 1.2rem;\n        line-height: 1.9rem;\n        width: 100%;\n        overflow: hidden;\n        text-overflow: ellipsis;\n        color: #636262;\n      }\n      .due-date {\n        margin-top: 5px;\n        font-size: 1.3rem;\n        letter-spacing: 2px;\n      }\n    }\n  }\n  .add-task {\n    padding-top: 20px;\n    padding-bottom: 20px;\n    display: flex;\n    flex-direction: row;\n    align-items: center;\n    gap: 20px;\n\n    font-size: 1.2rem;\n    color: #636262;\n    cursor: pointer;\n    .add-circle {\n      position: relative;\n      border-radius: 50%;\n      width: 25px;\n      height: 25px;\n    }\n    img.icon {\n      position: absolute;\n      left: 50%;\n      top: 50%;\n      transform: translate(-50%, -50%);\n      height: 80%;\n      width: 80%;\n      filter: brightness(0) saturate(100%) invert(25%) sepia(67%)\n        saturate(1617%) hue-rotate(327deg) brightness(91%) contrast(81%);\n    }\n    &:hover {\n      color: #cc2530;\n      .add-circle {\n        background-color: #cd3e47;\n      }\n      img.icon {\n        filter: brightness(0) saturate(100%) invert(100%) sepia(100%)\n          saturate(0%) hue-rotate(20deg) brightness(103%) contrast(101%);\n      }\n    }\n  }\n}\n\n#menu.hidden + main#content {\n  margin-left: 0;\n  width: 100vw;\n}\n\n@media (max-width: 800px) {\n  main#content {\n    margin-left: 0;\n    gap: 10px;\n  }\n  #menu:not(.hidden) + main#content {\n    background-color: rgba(black, 0.5);\n    width: 100vw;\n    .tasks .task-card {\n      border-color: #5e5f63;\n      .icon {\n        transition: all 0.3s;\n        filter: brightness(0) saturate(100%) invert(20%) sepia(5%)\n          saturate(1101%) hue-rotate(169deg) brightness(101%) contrast(94%);\n      }\n    }\n  }\n  #menu.hidden + main#content {\n    padding-left: 10vw;\n    padding-right: 2vw;\n  }\n  .tasks .task-card {\n    padding-bottom: 10px;\n    .icons {\n      right: 5px;\n    }\n    .icon {\n      display: block;\n    }\n    .data {\n      gap: 7px;\n      .title {\n        font-size: 1.1rem;\n      }\n      .description {\n        font-size: 0.9rem;\n        line-height: 1.5rem;\n      }\n      .due-date {\n        font-size: 1rem;\n        font-weight: 600;\n        margin-top: 10px;\n        letter-spacing: 1px;\n      }\n    }\n  }\n}\n","@use \"../abstracts\" as *;\n.task-popup-container {\n  display: none;\n  justify-content: center;\n  align-items: start;\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100vw;\n  height: 100vh;\n  z-index: 700;\n  &.visible {\n    display: flex;\n    .task-popup {\n      animation: show-popup var(--task-popup-snap-time) ease-out forwards;\n    }\n  }\n  &:not(.visible) {\n    .task-popup {\n      animation: hide-popup var(--task-popup-snap-time) ease-in forwards;\n    }\n  }\n}\n.task-popup {\n  box-sizing: border-box;\n  margin-top: 200px;\n  border-radius: 20px;\n\n  background-color: #fff;\n  box-shadow: rgba(17, 17, 26, 0.1) 0px 1px 0px,\n    rgba(17, 17, 26, 0.1) 0px 8px 24px, rgba(17, 17, 26, 0.1) 0px 16px 48px;\n\n  .data {\n    display: flex;\n    flex-direction: column;\n    gap: 15px;\n    padding: 25px;\n    border-bottom: 1px solid #cecccc;\n    .title {\n      font-size: 1.6rem;\n      font-weight: 600;\n    }\n    .description {\n      width: 100%;\n      max-height: min(500px, calc(100vh - 470px));\n      font-size: 1.05rem;\n      overflow-x: hidden;\n      overflow-y: scroll;\n      resize: none;\n      margin-bottom: 15px;\n    }\n    .title,\n    .description {\n      padding: none;\n      border: none;\n      outline: none;\n      color: #171717;\n      &::placeholder {\n        color: #6f6f6f;\n      }\n    }\n  }\n  .extra-fields {\n    height: 30px;\n    display: flex;\n    flex-direction: row;\n    gap: 15px;\n    color: #6f6f6f;\n    .flag-icon {\n      width: 22px;\n      height: 22px;\n      filter: var(--color-filter);\n    }\n    .dropdown-flag-icon {\n      width: 30px;\n      height: 30px;\n    }\n    .date-picker {\n      border-radius: 5px;\n      border: 1px solid #c1c1c1;\n      outline: none;\n      color: #636363;\n      font-size: 0.9rem;\n    }\n    .priority-select {\n      --color-filter: invert(52%) sepia(1%) saturate(0%) hue-rotate(278deg)\n        brightness(93%) contrast(85%);\n      position: relative;\n    }\n    .priority-button {\n      box-sizing: border-box;\n      height: 100%;\n      width: 100%;\n      padding-left: 8px;\n      padding-right: 8px;\n      border-radius: 5px;\n      border: 1px solid #c1c1c1;\n      display: flex;\n      flex-direction: row;\n      gap: 5px;\n      align-items: center;\n      font-size: 0.9rem;\n      font-weight: 600;\n      color: inherit;\n      background-color: transparent;\n    }\n    .date-picker,\n    .priority-button {\n      cursor: pointer;\n      &:hover {\n        background-color: #ededed;\n      }\n    }\n    .priority-dropdown {\n      display: none;\n      overflow: hidden;\n      position: absolute;\n      left: 0;\n      bottom: 0;\n      transform: translate(-25%, 100%);\n      z-index: 701;\n      &.visible {\n        width: 200px;\n        border: 1px solid #cecccc;\n        border-radius: 7.5px;\n        display: flex;\n        flex-direction: column;\n        background-color: #fff;\n      }\n      .dropdown-option {\n        box-sizing: border-box;\n        height: 50px;\n        padding: 15px;\n        display: flex;\n        flex-direction: row;\n        gap: 10px;\n\n        font-size: 1.1rem;\n        font-weight: 600;\n        font-family: MasivaMedium, system-ui, -apple-system, BlinkMacSystemFont,\n          \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\",\n          \"Helvetica Neue\", sans-serif;\n        color: black;\n        background-color: transparent;\n        border: none;\n        cursor: pointer;\n        &:hover {\n          background-color: #e2e2e2;\n        }\n        img.icon {\n          filter: var(--color-filter);\n        }\n      }\n    }\n  }\n  .bottom-ribbon {\n    height: 100px;\n    padding-left: 20px;\n    padding-right: 20px;\n    display: flex;\n    flex-direction: row;\n    justify-content: space-between;\n    align-items: center;\n    gap: 10px;\n    .project-select {\n      position: relative;\n    }\n    .project-button {\n      padding: 10px;\n      border: none;\n      background-color: transparent;\n      border-radius: 7.5px;\n      display: flex;\n      flex-direction: row;\n      align-items: center;\n      gap: 5px;\n      color: #777777;\n      font-size: 1.1rem;\n      font-weight: bold;\n      cursor: pointer;\n      img,\n      svg {\n        height: 20px;\n      }\n      &:hover {\n        color: black;\n        background-color: #e2e2e2;\n      }\n      &:active {\n        background-color: #d6d6d6;\n      }\n    }\n    .project-dropdown {\n      display: none;\n      overflow-y: scroll;\n      position: absolute;\n      left: 0;\n      bottom: 0;\n      transform: translate(-22.5%, 100%);\n      max-height: 210px;\n      z-index: 701;\n      &.visible {\n        width: 200px;\n        border: 1px solid #cecccc;\n        border-radius: 7.5px;\n        display: flex;\n        flex-direction: column;\n        background-color: #fff;\n      }\n      .dropdown-option {\n        box-sizing: border-box;\n        height: 50px;\n        padding: 15px;\n        display: flex;\n        flex-direction: row;\n        align-items: center;\n        gap: 10px;\n\n        font-size: 1.1rem;\n        font-weight: bold;\n        font-family: MasivaRegular, system-ui, -apple-system, BlinkMacSystemFont,\n          \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, \"Open Sans\",\n          \"Helvetica Neue\", sans-serif;\n        color: black;\n        background-color: transparent;\n        border: none;\n        cursor: pointer;\n        &:hover {\n          background-color: #e2e2e2;\n        }\n        .text {\n          overflow: hidden;\n          text-overflow: ellipsis;\n        }\n        img {\n          filter: var(--color-filter);\n          height: 25px;\n          width: 25px;\n        }\n      }\n    }\n    .submition-buttons {\n      display: flex;\n      flex-direction: row;\n      gap: 20px;\n      height: 50px;\n      button {\n        padding-left: 15px;\n        padding-right: 15px;\n        font-size: 1.3rem;\n        font-weight: bold;\n        border: none;\n        border-radius: 7.5px;\n        cursor: pointer;\n      }\n      .cancel {\n        background-color: #e2e2e2;\n        &:hover {\n          background-color: #d6d6d6;\n        }\n        &:active {\n          background-color: #c1c1c1;\n        }\n      }\n      .submit {\n        background-color: #c5444c;\n        color: white;\n        &:hover {\n          background-color: #a93d44;\n        }\n        &:active {\n          background-color: #a1363d;\n        }\n      }\n    }\n  }\n}\n.task-popup:invalid .bottom-ribbon .submition-buttons .submit {\n  background-color: #c5444da4;\n  cursor: not-allowed;\n}\n.p1 {\n  --color-filter: invert(32%) sepia(38%) saturate(1159%) hue-rotate(309deg)\n    brightness(92%) contrast(93%);\n}\n.p2 {\n  --color-filter: invert(52%) sepia(61%) saturate(1255%) hue-rotate(357deg)\n    brightness(101%) contrast(97%);\n}\n.p3 {\n  --color-filter: invert(40%) sepia(13%) saturate(5038%) hue-rotate(188deg)\n    brightness(94%) contrast(106%);\n}\n.pn {\n  --color-filter: invert(52%) sepia(1%) saturate(0%) hue-rotate(278deg)\n    brightness(93%) contrast(85%);\n}\n@media (max-width: 500px) {\n  .task-popup {\n    .bottom-ribbon {\n      padding-left: 15px;\n      padding-right: 15px;\n      .project-button {\n        box-sizing: border-box;\n        height: 50px;\n        padding: 8px;\n        gap: 5px;\n        .text {\n          max-width: 6ch;\n          overflow: hidden;\n        }\n      }\n      .project-dropdown {\n        transform: translate(-15%, 100%);\n      }\n      .submition-buttons {\n        gap: 10px;\n        button {\n          padding-left: 10px;\n          padding-right: 10px;\n          font-size: 1rem;\n        }\n      }\n    }\n  }\n}\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -2802,25 +3198,25 @@ module.exports = styleTagTransform;
 
 /***/ }),
 
-/***/ "./src/assets/fonts/CodeNextBook.ttf":
-/*!*******************************************!*\
-  !*** ./src/assets/fonts/CodeNextBook.ttf ***!
-  \*******************************************/
+/***/ "./src/assets/fonts/Masiva-Medium.otf":
+/*!********************************************!*\
+  !*** ./src/assets/fonts/Masiva-Medium.otf ***!
+  \********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-module.exports = __webpack_require__.p + "CodeNextBook.ttf";
+module.exports = __webpack_require__.p + "Masiva-Medium.otf";
 
 /***/ }),
 
-/***/ "./src/assets/fonts/CodeNextRegular.ttf":
-/*!**********************************************!*\
-  !*** ./src/assets/fonts/CodeNextRegular.ttf ***!
-  \**********************************************/
+/***/ "./src/assets/fonts/Masiva-Regular.otf":
+/*!*********************************************!*\
+  !*** ./src/assets/fonts/Masiva-Regular.otf ***!
+  \*********************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-module.exports = __webpack_require__.p + "CodeNextRegular.ttf";
+module.exports = __webpack_require__.p + "Masiva-Regular.otf";
 
 /***/ }),
 
@@ -2832,6 +3228,61 @@ module.exports = __webpack_require__.p + "CodeNextRegular.ttf";
 
 "use strict";
 module.exports = __webpack_require__.p + "check.svg";
+
+/***/ }),
+
+/***/ "./src/assets/images/chekbox-check.svg":
+/*!*********************************************!*\
+  !*** ./src/assets/images/chekbox-check.svg ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+module.exports = __webpack_require__.p + "chekbox-check.svg";
+
+/***/ }),
+
+/***/ "./src/assets/images/close.svg":
+/*!*************************************!*\
+  !*** ./src/assets/images/close.svg ***!
+  \*************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+module.exports = __webpack_require__.p + "close.svg";
+
+/***/ }),
+
+/***/ "./src/assets/images/delete.svg":
+/*!**************************************!*\
+  !*** ./src/assets/images/delete.svg ***!
+  \**************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+module.exports = __webpack_require__.p + "delete.svg";
+
+/***/ }),
+
+/***/ "./src/assets/images/edit.svg":
+/*!************************************!*\
+  !*** ./src/assets/images/edit.svg ***!
+  \************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+module.exports = __webpack_require__.p + "edit.svg";
+
+/***/ }),
+
+/***/ "./src/assets/images/list-box.svg":
+/*!****************************************!*\
+  !*** ./src/assets/images/list-box.svg ***!
+  \****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+module.exports = __webpack_require__.p + "list-box.svg";
 
 /***/ })
 
@@ -2980,4 +3431,4 @@ module.exports = __webpack_require__.p + "check.svg";
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=main.961d29697e1757e0b076.js.map
+//# sourceMappingURL=main.e7e71f3970efc87158fc.js.map
