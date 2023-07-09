@@ -397,7 +397,6 @@ function hideLoadingScreen() {
   }, numberOfSeconds * 1000);
 }
 function resizeElement(element) {
-  console.log(element);
   element.style.height = "auto";
   element.style.height = element.scrollHeight + "px";
 }
